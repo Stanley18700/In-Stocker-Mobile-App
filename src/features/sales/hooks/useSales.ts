@@ -23,11 +23,11 @@ export function useSales() {
     } = useSalesStore();
 
     const fetchSalesHistory = useCallback(
-        (filters?: SaleFilters) => {
+        async (filters?: SaleFilters) => {
             setLoading(true);
             setError(null);
             try {
-                const data = salesService.getHistory(filters);
+                const data = await salesService.getHistory(filters);
                 setSales(data);
             } catch (e: any) {
                 setError(e.message);
@@ -38,12 +38,12 @@ export function useSales() {
         [setLoading, setError, setSales]
     );
 
-    const checkout = useCallback(() => {
+    const checkout = useCallback(async () => {
         if (cart.length === 0) return;
         setLoading(true);
         setError(null);
         try {
-            const sale = salesService.recordSale(cart, user?.id ?? '');
+            const sale = await salesService.recordSale(cart, user?.id ?? '');
             addSale(sale);
             clearCart();
             return sale;

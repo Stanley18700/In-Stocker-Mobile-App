@@ -1,11 +1,5 @@
-import * as SQLite from 'expo-sqlite';
 import { Platform } from 'react-native';
 
-// ---------------------------------------------------------------------------
-// Single shared database connection — import this in all service files.
-// ---------------------------------------------------------------------------
-
-// Define an interface compatible with what we use from expo-sqlite
 interface LocalDB {
   execSync(sql: string): void;
   runSync(sql: string, params?: any[]): { lastInsertRowId: number, changes: number };
@@ -14,52 +8,13 @@ interface LocalDB {
   withTransactionSync(callback: () => void): void;
 }
 
-let db: LocalDB;
-
-if (Platform.OS === 'web') {
-  console.warn("Running on Web: SQLite is not supported locally. Using mock DB.");
-  db = {
-    execSync: (sql: string) => console.log('Mock execSync:', sql),
-    runSync: (sql: string, params: any[]) => {
-      console.log('Mock runSync:', sql, params);
-      return { lastInsertRowId: 1, changes: 1 };
-    },
-    getFirstSync: <T>(sql: string, params: any[]): T | null => {
-      console.log('Mock getFirstSync:', sql, params);
-      // Return a fake user for login so the app is usable
-      if (sql.includes('FROM users')) {
-        return {
-          id: 'demo-user-id',
-          email: 'demo@example.com',
-          password: 'hashed-password',
-          shop_name: 'Web Demo Shop',
-          owner_name: 'Web User',
-          created_at: new Date().toISOString()
-        } as unknown as T;
-      }
-      return null;
-    },
-    getAllSync: <T>(sql: string, params: any[]): T[] => {
-      console.log('Mock getAllSync:', sql, params);
-      if (sql.includes('FROM products')) {
-        return [
-          { id: '1', name: 'Web Demo Product', sku: 'WEB-001', price: 100, quantity: 50, low_stock_threshold: 5 }
-        ] as unknown as T[];
-      }
-      return [];
-    },
-    withTransactionSync: (callback: () => any) => callback(),
-  };
-} else {
-  try {
-    // cast to unknown first because expo-sqlite definitions might be slightly more complex
-    db = SQLite.openDatabaseSync('instocker.db') as unknown as LocalDB;
-  } catch (e) {
-    console.error("Failed to open database:", e);
-    // Fallback to avoid crash if native DB fails
-    db = {} as LocalDB;
-  }
-}
+const db: LocalDB = {
+  execSync: (sql: string) => console.log('Mock execSync:', sql),
+  runSync: (sql: string, params?: any[]) => { return { lastInsertRowId: 1, changes: 1 }; },
+  getFirstSync: <T>(): T | null => null,
+  getAllSync: <T>(): T[] => [],
+  withTransactionSync: (callback: () => any) => callback(),
+};
 
 export { db };
 

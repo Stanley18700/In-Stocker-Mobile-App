@@ -1,91 +1,150 @@
-import * as Crypto from 'expo-crypto';
-import { db } from '../../../lib/database/db';
+import { collection, doc, query, where, orderBy, getDocs, getDoc, setDoc, updateDoc, runTransaction } from 'firebase/firestore';
+import { db } from '../../../lib/database/firebaseConfig';
 import { Product, CreateProductInput, UpdateProductInput } from '../../../shared/types/product';
+import * as Crypto from 'expo-crypto';
 
-const mapRow = (row: any): Product => ({
-    id: row.id,
-    userId: row.user_id,
-    name: row.name,
-    sku: row.sku,
-    quantity: row.quantity,
-    price: row.price,
-    lowStockThreshold: row.low_stock_threshold,
-    category: row.category,
-    imageUrl: row.image_url,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-});
+const productsCollection = collection(db, 'products');
 
 export const inventoryService = {
-    getAll(): Product[] {
-        const rows = db.getAllSync<any>(
-            `SELECT * FROM products WHERE is_active = 1 ORDER BY created_at DESC`
-        );
-        return rows.map(mapRow);
+    async getAll(): Promise<Product[]> {
+        const q = query(productsCollection, where("is_active", "==", 1), orderBy("created_at", "desc"));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                userId: data.user_id,
+                name: data.name,
+                sku: data.sku,
+                quantity: data.quantity,
+                price: data.price,
+                lowStockThreshold: data.low_stock_threshold,
+                category: data.category,
+                imageUrl: data.image_url,
+                createdAt: data.created_at,
+                updatedAt: data.updated_at,
+            } as Product;
+        });
     },
 
-    getById(id: string): Product {
-        const row = db.getFirstSync<any>('SELECT * FROM products WHERE id = ?', [id]);
-        if (!row) throw new Error('Product not found.');
-        return mapRow(row);
+    async getById(id: string): Promise<Product> {
+        const docRef = doc(productsCollection, id);
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) throw new Error('Product not found.');
+        const data = docSnap.data();
+        return {
+            id: docSnap.id,
+            userId: data.user_id,
+            name: data.name,
+            sku: data.sku,
+            quantity: data.quantity,
+            price: data.price,
+            lowStockThreshold: data.low_stock_threshold,
+            category: data.category,
+            imageUrl: data.image_url,
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+        } as Product;
     },
 
-    create(input: CreateProductInput, userId: string): Product {
+    async create(input: CreateProductInput, userId: string): Promise<Product> {
+        if (!userId) throw new Error("User ID is required to create a product.");
         const id = Crypto.randomUUID();
         const sku = input.sku ?? id.slice(0, 8).toUpperCase();
-        db.runSync(
-            `INSERT INTO products (id, user_id, name, sku, price, quantity, low_stock_threshold, category)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [id, userId, input.name, sku, input.price,
-                input.quantity, input.lowStockThreshold, input.category ?? null]
-        );
-        return this.getById(id);
+        const now = new Date().toISOString();
+
+        const docRef = doc(productsCollection, id);
+        const data = {
+            user_id: userId,
+            name: input.name,
+            sku: sku,
+            price: input.price,
+            quantity: input.quantity,
+            low_stock_threshold: input.lowStockThreshold,
+            category: input.category ?? null,
+            is_active: 1,
+            created_at: now,
+            updated_at: now
+        };
+        await setDoc(docRef, data);
+
+        return {
+            id: id,
+            userId: userId,
+            name: input.name,
+            sku: sku,
+            quantity: input.quantity,
+            price: input.price,
+            lowStockThreshold: input.lowStockThreshold,
+            category: input.category,
+            imageUrl: undefined,
+            createdAt: now,
+            updatedAt: now,
+        };
     },
 
-    update(id: string, input: UpdateProductInput): Product {
-        const fields: string[] = [];
-        const values: any[] = [];
+    async update(id: string, input: UpdateProductInput): Promise<Product> {
+        const docRef = doc(productsCollection, id);
+        const updates: Record<string, any> = {};
 
-        if (input.name !== undefined) { fields.push('name = ?'); values.push(input.name); }
-        if (input.quantity !== undefined) { fields.push('quantity = ?'); values.push(input.quantity); }
-        if (input.price !== undefined) { fields.push('price = ?'); values.push(input.price); }
-        if (input.lowStockThreshold !== undefined) { fields.push('low_stock_threshold = ?'); values.push(input.lowStockThreshold); }
-        if (input.category !== undefined) { fields.push('category = ?'); values.push(input.category); }
+        if (input.name !== undefined) updates.name = input.name;
+        if (input.quantity !== undefined) updates.quantity = input.quantity;
+        if (input.price !== undefined) updates.price = input.price;
+        if (input.lowStockThreshold !== undefined) updates.low_stock_threshold = input.lowStockThreshold;
+        if (input.category !== undefined) updates.category = input.category;
 
-        if (fields.length > 0) {
-            fields.push("updated_at = datetime('now')");
-            values.push(id);
-            db.runSync(`UPDATE products SET ${fields.join(', ')} WHERE id = ?`, values);
+        if (Object.keys(updates).length > 0) {
+            updates.updated_at = new Date().toISOString();
+            await updateDoc(docRef, updates);
         }
         return this.getById(id);
     },
 
-    delete(id: string): void {
-        db.runSync(
-            `UPDATE products SET is_active = 0, updated_at = datetime('now') WHERE id = ?`, [id]
-        );
+    async delete(id: string): Promise<void> {
+        const docRef = doc(productsCollection, id);
+        await updateDoc(docRef, {
+            is_active: 0,
+            updated_at: new Date().toISOString()
+        });
     },
 
-    getLowStock(threshold: number): Product[] {
-        const rows = db.getAllSync<any>(
-            `SELECT * FROM products WHERE is_active = 1 AND quantity <= ? ORDER BY quantity ASC`,
-            [threshold]
+    async getLowStock(threshold: number): Promise<Product[]> {
+        const q = query(
+            productsCollection,
+            where("is_active", "==", 1),
+            where("quantity", "<=", threshold),
+            orderBy("quantity", "asc")
         );
-        return rows.map(mapRow);
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
+            return {
+                id: doc.id,
+                userId: data.user_id,
+                name: data.name,
+                sku: data.sku,
+                quantity: data.quantity,
+                price: data.price,
+                lowStockThreshold: data.low_stock_threshold,
+                category: data.category,
+                imageUrl: data.image_url,
+                createdAt: data.created_at,
+                updatedAt: data.updated_at,
+            } as Product;
+        });
     },
 
-    adjustStock(id: string, delta: number): void {
-        db.withTransactionSync(() => {
-            const product = db.getFirstSync<{ quantity: number }>(
-                'SELECT quantity FROM products WHERE id = ?', [id]
-            );
-            if (!product) throw new Error('Product not found.');
-            const newQty = product.quantity + delta;
+    async adjustStock(id: string, delta: number): Promise<void> {
+        const docRef = doc(productsCollection, id);
+        await runTransaction(db, async (transaction) => {
+            const docSnap = await transaction.get(docRef);
+            if (!docSnap.exists()) throw new Error('Product not found.');
+            const newQty = docSnap.data().quantity + delta;
             if (newQty < 0) throw new Error('Insufficient stock.');
-            db.runSync(
-                `UPDATE products SET quantity = ?, updated_at = datetime('now') WHERE id = ?`,
-                [newQty, id]
-            );
+            transaction.update(docRef, {
+                quantity: newQty,
+                updated_at: new Date().toISOString()
+            });
         });
     },
 };

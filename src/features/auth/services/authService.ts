@@ -1,63 +1,76 @@
-import * as Crypto from 'expo-crypto';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { db } from '../../../lib/database/db';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { auth, db } from '../../../lib/database/firebaseConfig';
 import { User } from '../../../shared/types/user';
-
-const SESSION_KEY = 'instocker_user_id';
-
-async function hashPassword(password: string): Promise<string> {
-    return Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, password);
-}
-
-function mapRow(row: any): User {
-    return {
-        id: row.id,
-        email: row.email,
-        shopName: row.shop_name,
-        ownerName: row.owner_name,
-        createdAt: row.created_at,
-    };
-}
 
 export const authService = {
     async signIn(email: string, password: string) {
-        const hashed = await hashPassword(password);
-        const user = db.getFirstSync<any>(
-            'SELECT * FROM users WHERE email = ? AND password = ?',
-            [email.toLowerCase(), hashed]
-        );
-        if (!user) throw new Error('Invalid email or password.');
-        await AsyncStorage.setItem(SESSION_KEY, user.id);
-        return { user: mapRow(user) };
+        const userCredential = await signInWithEmailAndPassword(auth, email.toLowerCase(), password);
+        const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
+
+        if (!userDoc.exists()) throw new Error('User profile not found.');
+        const data = userDoc.data();
+
+        const user: User = {
+            id: userCredential.user.uid,
+            email: userCredential.user.email!,
+            shopName: data.shop_name,
+            ownerName: data.owner_name,
+            createdAt: data.created_at,
+        };
+
+        return { user };
     },
 
     async signUp(email: string, password: string, shopName: string, ownerName: string) {
-        const existing = db.getFirstSync(
-            'SELECT id FROM users WHERE email = ?', [email.toLowerCase()]
-        );
-        if (existing) throw new Error('An account with this email already exists.');
+        const userCredential = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
+        const uid = userCredential.user.uid;
+        const now = new Date().toISOString();
 
-        const id = Crypto.randomUUID();
-        const hashed = await hashPassword(password);
-        db.runSync(
-            `INSERT INTO users (id, email, password, shop_name, owner_name) VALUES (?, ?, ?, ?, ?)`,
-            [id, email.toLowerCase(), hashed, shopName, ownerName]
-        );
-        const user = db.getFirstSync<any>('SELECT * FROM users WHERE id = ?', [id]);
-        await AsyncStorage.setItem(SESSION_KEY, id);
-        return { user: mapRow(user) };
+        const data = {
+            email: email.toLowerCase(),
+            shop_name: shopName,
+            owner_name: ownerName,
+            created_at: now
+        };
+
+        await setDoc(doc(db, 'users', uid), data);
+
+        const user: User = {
+            id: uid,
+            email: email.toLowerCase(),
+            shopName,
+            ownerName,
+            createdAt: now,
+        };
+
+        return { user };
     },
 
     async signOut() {
-        await AsyncStorage.removeItem(SESSION_KEY);
+        await firebaseSignOut(auth);
     },
 
     async getProfile(userId: string): Promise<User | null> {
-        const user = db.getFirstSync<any>('SELECT * FROM users WHERE id = ?', [userId]);
-        return user ? mapRow(user) : null;
+        const userDoc = await getDoc(doc(db, 'users', userId));
+        if (!userDoc.exists()) return null;
+
+        const data = userDoc.data();
+        return {
+            id: userId,
+            email: data.email,
+            shopName: data.shop_name,
+            ownerName: data.owner_name,
+            createdAt: data.created_at,
+        };
     },
 
     async getCurrentUserId(): Promise<string | null> {
-        return AsyncStorage.getItem(SESSION_KEY);
+        return new Promise((resolve) => {
+            const unsubscribe = onAuthStateChanged(auth, (user) => {
+                unsubscribe();
+                resolve(user ? user.uid : null);
+            });
+        });
     },
 };

@@ -38,7 +38,7 @@ export function useInventory() {
             setLoading(true);
             setError(null);
             try {
-                const product = inventoryService.create(input, user?.id ?? '');
+                const product = await inventoryService.create(input, user?.id ?? '');
                 addProduct(product);
                 return product;
             } catch (e: any) {
