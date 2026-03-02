@@ -1,11 +1,17 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { useSales } from '../hooks/useSales';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency, formatDate } from '../../../shared/utils/formatters';
 import { Sale } from '../../../shared/types/sale';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { SalesStackParamList } from '../../../core/navigation/types';
 
-export default function SalesHistoryScreen() {
+type Props = {
+    navigation: StackNavigationProp<SalesStackParamList, 'SalesHistory'>;
+};
+
+export default function SalesHistoryScreen({ navigation }: Props) {
     const { sales, isLoading, fetchSalesHistory } = useSales();
 
     useEffect(() => {
@@ -28,6 +34,12 @@ export default function SalesHistoryScreen() {
 
     return (
         <View style={styles.container}>
+            <TouchableOpacity
+                style={styles.reportsBtn}
+                onPress={() => navigation.navigate('Reports')}
+            >
+                <Text style={styles.reportsBtnText}>📊  View Reports</Text>
+            </TouchableOpacity>
             {isLoading && sales.length === 0 ? (
                 <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
             ) : (
@@ -60,4 +72,22 @@ const styles = StyleSheet.create({
     total: { fontSize: FontSize.md, fontWeight: 'bold', color: Colors.primary },
     itemLine: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 2 },
     empty: { textAlign: 'center', color: Colors.textMuted, marginTop: 60, fontSize: FontSize.md },
+    reportsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: Spacing.md,
+        marginBottom: 0,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        backgroundColor: Colors.surface,
+        borderRadius: BorderRadius.md,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    reportsBtnText: {
+        fontSize: FontSize.sm,
+        fontWeight: 'bold',
+        color: Colors.primary,
+    },
 });

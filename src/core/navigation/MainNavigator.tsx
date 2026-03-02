@@ -2,13 +2,15 @@ import React from 'react';
 import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from './types';
-import { Colors } from '../theme/colors';
+import { Colors } from '../theme';
 
 // Stacks & Screens
 import HomeScreen from '../../features/home/screens/HomeScreen';
 import InventoryStack from './stacks/InventoryStack';
 import SalesStack from './stacks/SalesStack';
-import SettingsScreen from '../../features/settings/screens/SettingsScreen';
+import AlertsScreen from '../../features/alerts/screens/AlertsScreen';
+import SettingsStack from './stacks/SettingsStack';
+import { useAlertsStore } from '../../features/alerts/store/alertsStore';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
@@ -17,10 +19,13 @@ const TAB_ICONS: Record<keyof MainTabParamList, string> = {
     Home: '🏠',
     Inventory: '📦',
     Sales: '🛒',
+    Alerts: '🔔',
     Settings: '⚙️',
 };
 
 export default function MainNavigator() {
+    const alertCount = useAlertsStore((s) => s.lowStockProducts.length);
+
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
@@ -66,9 +71,18 @@ export default function MainNavigator() {
                 options={{ headerShown: false, title: 'Sales' }}
             />
             <Tab.Screen
+                name="Alerts"
+                component={AlertsScreen}
+                options={{
+                    title: 'Alerts',
+                    tabBarBadge: alertCount > 0 ? alertCount : undefined,
+                    tabBarBadgeStyle: { backgroundColor: Colors.danger },
+                }}
+            />
+            <Tab.Screen
                 name="Settings"
-                component={SettingsScreen}
-                options={{ title: 'Settings' }}
+                component={SettingsStack}
+                options={{ headerShown: false, title: 'Settings' }}
             />
         </Tab.Navigator>
     );

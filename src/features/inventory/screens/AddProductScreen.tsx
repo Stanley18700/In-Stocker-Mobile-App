@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -10,17 +10,19 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { generateSKU } from '../../../shared/utils/formatters';
 import { APP_CONFIG } from '../../../constants/config';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp } from '@react-navigation/native';
 import { InventoryStackParamList } from '../../../core/navigation/types';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'AddProduct'>;
+    route: RouteProp<InventoryStackParamList, 'AddProduct'>;
 };
 
-export default function AddProductScreen({ navigation }: Props) {
+export default function AddProductScreen({ navigation, route }: Props) {
     const { createProduct, isLoading } = useInventory();
     const [name, setName] = useState('');
     const [sku, setSku] = useState('');
@@ -28,6 +30,13 @@ export default function AddProductScreen({ navigation }: Props) {
     const [price, setPrice] = useState('');
     const [threshold, setThreshold] = useState(String(APP_CONFIG.defaultLowStockThreshold));
     const [category, setCategory] = useState('');
+
+    // Populate SKU when returning from the barcode scanner
+    useEffect(() => {
+        if (route.params?.scannedSku) {
+            setSku(route.params.scannedSku);
+        }
+    }, [route.params?.scannedSku]);
 
     const handleAutoSKU = () => {
         if (name) setSku(generateSKU(name));
@@ -59,7 +68,21 @@ export default function AddProductScreen({ navigation }: Props) {
             <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. Rice 5kg" placeholderTextColor={Colors.textMuted} onBlur={handleAutoSKU} />
 
             <Text style={styles.label}>SKU *</Text>
-            <TextInput style={styles.input} value={sku} onChangeText={setSku} placeholder="Auto-generated or enter manually" placeholderTextColor={Colors.textMuted} />
+            <View style={styles.skuRow}>
+                <TextInput
+                    style={[styles.input, styles.skuInput]}
+                    value={sku}
+                    onChangeText={setSku}
+                    placeholder="Auto-generated or scan barcode"
+                    placeholderTextColor={Colors.textMuted}
+                />
+                <TouchableOpacity
+                    style={styles.scanBtn}
+                    onPress={() => navigation.navigate('BarcodeScanner', { returnTo: 'AddProduct' })}
+                >
+                    <Text style={styles.scanBtnText}>📷 Scan</Text>
+                </TouchableOpacity>
+            </View>
 
             <Text style={styles.label}>Category</Text>
             <TextInput style={styles.input} value={category} onChangeText={setCategory} placeholder="e.g. Food, Beverage" placeholderTextColor={Colors.textMuted} />
@@ -103,4 +126,27 @@ const styles = StyleSheet.create({
         marginTop: Spacing.sm,
     },
     buttonText: { color: Colors.white, fontSize: FontSize.md, fontWeight: 'bold' },
+    skuRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Spacing.sm,
+        marginBottom: Spacing.md,
+    },
+    skuInput: {
+        flex: 1,
+        marginBottom: 0,
+    },
+    scanBtn: {
+        backgroundColor: Colors.primary,
+        borderRadius: BorderRadius.md,
+        paddingVertical: Spacing.sm + 4,
+        paddingHorizontal: Spacing.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    scanBtnText: {
+        color: Colors.white,
+        fontSize: FontSize.sm,
+        fontWeight: 'bold',
+    },
 });

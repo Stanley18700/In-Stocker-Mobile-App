@@ -1,58 +1,97 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useAuth } from '../hooks/useAuth';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { useAuthStore } from '../store/authStore';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../../core/theme';
+import { formatDate } from '../../../shared/utils/formatters';
+import { SettingsStackParamList } from '../../../core/navigation/types';
 
-export default function ProfileScreen() {
-    const { user, signOut } = useAuth();
+type Props = {
+    navigation: StackNavigationProp<SettingsStackParamList, 'Profile'>;
+};
 
-    const handleSignOut = () => {
-        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign Out', style: 'destructive', onPress: signOut },
-        ]);
-    };
+export default function ProfileScreen({ navigation }: Props) {
+    const { user } = useAuthStore();
+
+    const rows = [
+        { label: 'Shop Name', value: user?.shopName ?? '—' },
+        { label: 'Owner Name', value: user?.ownerName ?? '—' },
+        { label: 'Email', value: user?.email ?? '—' },
+        { label: 'Member Since', value: user?.createdAt ? formatDate(user.createdAt) : '—' },
+    ];
 
     return (
-        <View style={styles.container}>
-            <View style={styles.card}>
-                <Text style={styles.avatar}>👤</Text>
+        <ScrollView style={styles.container} contentContainerStyle={styles.inner}>
+            <View style={styles.avatarContainer}>
+                <Text style={styles.avatar}>🏪</Text>
                 <Text style={styles.shopName}>{user?.shopName ?? '—'}</Text>
                 <Text style={styles.ownerName}>{user?.ownerName ?? '—'}</Text>
-                <Text style={styles.email}>{user?.email ?? '—'}</Text>
             </View>
-            <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
-                <Text style={styles.signOutText}>Sign Out</Text>
+
+            <View style={styles.card}>
+                {rows.map((row, i) => (
+                    <View
+                        key={row.label}
+                        style={[styles.row, i < rows.length - 1 && styles.rowBorder]}
+                    >
+                        <Text style={styles.rowLabel}>{row.label}</Text>
+                        <Text style={styles.rowValue}>{row.value}</Text>
+                    </View>
+                ))}
+            </View>
+
+            <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => navigation.navigate('EditProfile')}
+            >
+                <Text style={styles.editBtnText}>✏️  Edit Profile</Text>
             </TouchableOpacity>
-        </View>
+        </ScrollView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: Colors.background, padding: Spacing.lg },
+    container: { flex: 1, backgroundColor: Colors.background },
+    inner: { padding: Spacing.lg },
+    avatarContainer: {
+        alignItems: 'center',
+        marginBottom: Spacing.lg,
+    },
+    avatar: { fontSize: 64, marginBottom: Spacing.sm },
+    shopName: {
+        fontSize: FontSize.xl,
+        fontWeight: FontWeight.bold,
+        color: Colors.textPrimary,
+        marginBottom: 2,
+    },
+    ownerName: { fontSize: FontSize.md, color: Colors.textSecondary },
     card: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
-        padding: Spacing.xl,
-        alignItems: 'center',
-        marginBottom: Spacing.lg,
         borderWidth: 1,
         borderColor: Colors.border,
+        overflow: 'hidden',
     },
-    avatar: { fontSize: 56, marginBottom: Spacing.md },
-    shopName: {
-        fontSize: FontSize.xl,
-        fontWeight: 'bold',
-        color: Colors.textPrimary,
-        marginBottom: Spacing.xs,
+    row: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.md,
     },
-    ownerName: { fontSize: FontSize.md, color: Colors.textSecondary, marginBottom: Spacing.xs },
-    email: { fontSize: FontSize.sm, color: Colors.textMuted },
-    signOutBtn: {
-        backgroundColor: Colors.dangerLight,
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+    rowLabel: { fontSize: FontSize.sm, color: Colors.textSecondary, fontWeight: FontWeight.medium },
+    rowValue: { fontSize: FontSize.sm, color: Colors.textPrimary, fontWeight: FontWeight.semibold, flexShrink: 1, textAlign: 'right' },
+    editBtn: {
+        backgroundColor: Colors.primary,
         borderRadius: BorderRadius.md,
         paddingVertical: Spacing.md,
         alignItems: 'center',
+        marginTop: Spacing.lg,
     },
-    signOutText: { color: Colors.danger, fontWeight: 'bold', fontSize: FontSize.md },
+    editBtnText: {
+        color: Colors.white,
+        fontSize: FontSize.md,
+        fontWeight: FontWeight.bold,
+    },
 });

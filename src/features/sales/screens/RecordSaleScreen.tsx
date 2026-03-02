@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSales } from '../hooks/useSales';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency } from '../../../shared/utils/formatters';
 import { Product } from '../../../shared/types/product';
 import { StackNavigationProp } from '@react-navigation/stack';

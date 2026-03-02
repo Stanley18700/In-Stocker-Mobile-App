@@ -21,17 +21,18 @@ export function useInventory() {
     } = useInventoryStore();
 
     const fetchProducts = useCallback(async () => {
+        if (!user?.id) return;
         setLoading(true);
         setError(null);
         try {
-            const data = await inventoryService.getAll();
+            const data = await inventoryService.getAll(user.id);
             setProducts(data);
         } catch (e: any) {
             setError(e.message);
         } finally {
             setLoading(false);
         }
-    }, [setLoading, setError, setProducts]);
+    }, [user?.id, setLoading, setError, setProducts]);
 
     const createProduct = useCallback(
         async (input: CreateProductInput) => {

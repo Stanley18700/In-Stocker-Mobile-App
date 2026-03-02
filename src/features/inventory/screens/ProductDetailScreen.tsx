@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency } from '../../../shared/utils/formatters';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { InventoryStackParamList } from '../../../core/navigation/types';
@@ -9,6 +9,7 @@ import { InventoryStackParamList } from '../../../core/navigation/types';
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'ProductDetail'>;
 };
+
 
 export default function ProductDetailScreen({ navigation }: Props) {
     const { selectedProduct, removeProduct } = useInventory();
@@ -64,6 +65,13 @@ export default function ProductDetailScreen({ navigation }: Props) {
                 </View>
             )}
 
+            <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => navigation.navigate('EditProduct', { productId: selectedProduct.id })}
+            >
+                <Text style={styles.editBtnText}>Edit Product</Text>
+            </TouchableOpacity>
+
             <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
                 <Text style={styles.deleteBtnText}>Delete Product</Text>
             </TouchableOpacity>
@@ -116,12 +124,21 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.md,
     },
     alertText: { color: Colors.warning, fontWeight: '600', fontSize: FontSize.sm },
+    editBtn: {
+        backgroundColor: Colors.primaryLight,
+        borderRadius: BorderRadius.md,
+        paddingVertical: Spacing.md,
+        alignItems: 'center',
+        marginTop: Spacing.sm,
+        marginBottom: Spacing.sm,
+    },
+    editBtnText: { color: Colors.primary, fontWeight: 'bold', fontSize: FontSize.md },
     deleteBtn: {
         backgroundColor: Colors.dangerLight,
         borderRadius: BorderRadius.md,
         paddingVertical: Spacing.md,
         alignItems: 'center',
-        marginTop: Spacing.sm,
+        marginTop: Spacing.xs,
     },
     deleteBtnText: { color: Colors.danger, fontWeight: 'bold', fontSize: FontSize.md },
 });

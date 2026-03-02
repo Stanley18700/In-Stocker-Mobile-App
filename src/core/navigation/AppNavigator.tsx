@@ -3,7 +3,8 @@ import { ActivityIndicator, View, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from './types';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../features/auth/store/authStore';
+import { usePreferencesStore } from '../../features/settings/store/preferencesStore';
 import AuthNavigator from './AuthNavigator';
 import MainNavigator from './MainNavigator';
 import { Colors } from '../theme';
@@ -13,9 +14,10 @@ const Stack = createStackNavigator<RootStackParamList>();
 export default function AppNavigator() {
     const { user, isLoading, initializeAuth } = useAuthStore();
 
-    // Restore persisted session on app startup
+    // Restore persisted session and preferences on app startup
     useEffect(() => {
         initializeAuth();
+        usePreferencesStore.getState().hydrate();
     }, []);
 
     // Splash / loading state while session is being restored

@@ -9,7 +9,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { InventoryStackParamList } from '../../../core/navigation/types';
 import { Product } from '../../../shared/types/product';

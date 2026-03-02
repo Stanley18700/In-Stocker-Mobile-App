@@ -3,7 +3,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { AuthStackParamList } from './types';
 import LoginScreen from '../../features/auth/screens/LoginScreen';
 import RegisterScreen from '../../features/auth/screens/RegisterScreen';
-import { Colors } from '../theme/colors';
+import { Colors } from '../theme';
 
 const Stack = createStackNavigator<AuthStackParamList>();
 

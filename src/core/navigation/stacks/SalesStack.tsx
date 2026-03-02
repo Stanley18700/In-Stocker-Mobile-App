@@ -3,7 +3,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { SalesStackParamList } from '../types';
 import RecordSaleScreen from '../../../features/sales/screens/RecordSaleScreen';
 import SalesHistoryScreen from '../../../features/sales/screens/SalesHistoryScreen';
-import { Colors } from '../../theme/colors';
+import ReportsScreen from '../../../features/sales/screens/ReportsScreen';
+import { Colors } from '../../theme';
 
 const Stack = createStackNavigator<SalesStackParamList>();
 
@@ -26,6 +27,11 @@ export default function SalesStack() {
                 name="SalesHistory"
                 component={SalesHistoryScreen}
                 options={{ title: 'Sales History' }}
+            />
+            <Stack.Screen
+                name="Reports"
+                component={ReportsScreen}
+                options={{ title: 'Reports & Analytics' }}
             />
         </Stack.Navigator>
     );

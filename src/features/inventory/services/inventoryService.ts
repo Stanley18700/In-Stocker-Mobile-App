@@ -5,46 +5,43 @@ import * as Crypto from 'expo-crypto';
 
 const productsCollection = collection(db, 'products');
 
+// ---------------------------------------------------------------------------
+// Helper: map a Firestore document snapshot → Product
+// ---------------------------------------------------------------------------
+function mapDoc(doc: any): Product {
+    const data = doc.data();
+    return {
+        id: doc.id,
+        userId: data.user_id,
+        name: data.name,
+        sku: data.sku,
+        quantity: data.quantity,
+        price: data.price,
+        lowStockThreshold: data.low_stock_threshold,
+        category: data.category,
+        imageUrl: data.image_url,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+    } as Product;
+}
+
 export const inventoryService = {
-    async getAll(): Promise<Product[]> {
-        const q = query(productsCollection, where("is_active", "==", 1), orderBy("created_at", "desc"));
+    async getAll(userId: string): Promise<Product[]> {
+        const q = query(
+            productsCollection,
+            where('user_id', '==', userId),
+            where('is_active', '==', 1),
+            orderBy('created_at', 'desc')
+        );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                userId: data.user_id,
-                name: data.name,
-                sku: data.sku,
-                quantity: data.quantity,
-                price: data.price,
-                lowStockThreshold: data.low_stock_threshold,
-                category: data.category,
-                imageUrl: data.image_url,
-                createdAt: data.created_at,
-                updatedAt: data.updated_at,
-            } as Product;
-        });
+        return snapshot.docs.map(mapDoc);
     },
 
     async getById(id: string): Promise<Product> {
         const docRef = doc(productsCollection, id);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) throw new Error('Product not found.');
-        const data = docSnap.data();
-        return {
-            id: docSnap.id,
-            userId: data.user_id,
-            name: data.name,
-            sku: data.sku,
-            quantity: data.quantity,
-            price: data.price,
-            lowStockThreshold: data.low_stock_threshold,
-            category: data.category,
-            imageUrl: data.image_url,
-            createdAt: data.created_at,
-            updatedAt: data.updated_at,
-        } as Product;
+        return mapDoc(docSnap);
     },
 
     async create(input: CreateProductInput, userId: string): Promise<Product> {
@@ -108,30 +105,16 @@ export const inventoryService = {
         });
     },
 
-    async getLowStock(threshold: number): Promise<Product[]> {
+    async getLowStock(userId: string, threshold: number): Promise<Product[]> {
         const q = query(
             productsCollection,
-            where("is_active", "==", 1),
-            where("quantity", "<=", threshold),
-            orderBy("quantity", "asc")
+            where('user_id', '==', userId),
+            where('is_active', '==', 1),
+            where('quantity', '<=', threshold),
+            orderBy('quantity', 'asc')
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(doc => {
-            const data = doc.data();
-            return {
-                id: doc.id,
-                userId: data.user_id,
-                name: data.name,
-                sku: data.sku,
-                quantity: data.quantity,
-                price: data.price,
-                lowStockThreshold: data.low_stock_threshold,
-                category: data.category,
-                imageUrl: data.image_url,
-                createdAt: data.created_at,
-                updatedAt: data.updated_at,
-            } as Product;
-        });
+        return snapshot.docs.map(mapDoc);
     },
 
     async adjustStock(id: string, delta: number): Promise<void> {

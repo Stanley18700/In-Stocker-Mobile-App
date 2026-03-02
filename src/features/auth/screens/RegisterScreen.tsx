@@ -12,7 +12,7 @@ import {
     ScrollView,
 } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../constants/theme';
+import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 
 export default function RegisterScreen() {
     const [email, setEmail] = useState('');

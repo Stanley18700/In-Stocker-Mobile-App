@@ -20,6 +20,7 @@ export type MainTabParamList = {
     Home: undefined;
     Inventory: undefined;
     Sales: undefined;
+    Alerts: undefined;
     Settings: undefined;
 };
 
@@ -27,11 +28,22 @@ export type MainTabParamList = {
 export type InventoryStackParamList = {
     InventoryList: undefined;
     ProductDetail: { productId: string };
-    AddProduct: undefined;
+    AddProduct: { scannedSku?: string } | undefined;
+    EditProduct: { productId: string };
+    BarcodeScanner: { returnTo: 'AddProduct' };
 };
 
 // Sales stack
 export type SalesStackParamList = {
     RecordSale: undefined;
     SalesHistory: undefined;
+    Reports: undefined;
+};
+
+// Settings stack
+export type SettingsStackParamList = {
+    SettingsList: undefined;
+    Profile: undefined;
+    EditProfile: undefined;
+    EditPreferences: undefined;
 };

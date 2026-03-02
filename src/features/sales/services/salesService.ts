@@ -1,4 +1,4 @@
-import { collection, doc, query, orderBy, getDocs, runTransaction } from 'firebase/firestore';
+import { collection, doc, query, where, orderBy, getDocs, runTransaction } from 'firebase/firestore';
 import { db } from '../../../lib/database/firebaseConfig';
 import { Sale, CartItem, SaleFilters, SaleItem } from '../../../shared/types/sale';
 import * as Crypto from 'expo-crypto';
@@ -82,8 +82,8 @@ export const salesService = {
         };
     },
 
-    async getHistory(filters?: SaleFilters): Promise<Sale[]> {
-        const q = query(salesCollection, orderBy('created_at', 'desc'));
+    async getHistory(userId: string, filters?: SaleFilters): Promise<Sale[]> {
+        const q = query(salesCollection, where('user_id', '==', userId), orderBy('created_at', 'desc'));
         const snapshot = await getDocs(q);
 
         let sales = snapshot.docs.map(d => {

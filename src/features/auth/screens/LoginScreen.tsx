@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { useAuthStore } from '../../../store/authStore';
+import { useAuthStore } from '../store/authStore';
 import InputField from '../../../shared/components/InputField';
 import PrimaryButton from '../../../shared/components/PrimaryButton';
 import { Colors, FontSize, FontWeight, Spacing } from '../../../core/theme';

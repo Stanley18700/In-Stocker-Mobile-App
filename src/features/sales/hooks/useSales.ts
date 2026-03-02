@@ -27,7 +27,7 @@ export function useSales() {
             setLoading(true);
             setError(null);
             try {
-                const data = await salesService.getHistory(filters);
+                const data = await salesService.getHistory(user?.id ?? '', filters);
                 setSales(data);
             } catch (e: any) {
                 setError(e.message);

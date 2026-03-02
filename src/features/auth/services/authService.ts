@@ -1,5 +1,5 @@
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../../lib/database/firebaseConfig';
 import { User } from '../../../shared/types/user';
 
@@ -72,5 +72,19 @@ export const authService = {
                 resolve(user ? user.uid : null);
             });
         });
+    },
+
+    // ── Update profile (shop name + owner name) ───────────────────────────────
+    async updateProfile(
+        userId: string,
+        updates: { shopName?: string; ownerName?: string }
+    ): Promise<void> {
+        const docRef = doc(db, 'users', userId);
+        const payload: Record<string, string> = {};
+        if (updates.shopName !== undefined) payload.shop_name = updates.shopName;
+        if (updates.ownerName !== undefined) payload.owner_name = updates.ownerName;
+        if (Object.keys(payload).length > 0) {
+            await updateDoc(docRef, payload);
+        }
     },
 };

@@ -1,6 +1,7 @@
 -- =============================================================================
--- In-Stocker — Supabase Schema
--- Run this in: Supabase Dashboard → SQL Editor
+-- In-Stocker — Database Schema Reference (ARCHIVED)
+-- NOTE: The app now uses Firebase Firestore as its backend.
+--       This SQL schema is kept as a reference for the relational data model.
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
