@@ -7,6 +7,7 @@ import {
     StyleSheet,
     ActivityIndicator,
     RefreshControl,
+    Platform,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
@@ -113,11 +114,16 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         justifyContent: 'center',
         alignItems: 'center',
-        elevation: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
+        ...Platform.select({
+            web: { boxShadow: '0 2px 8px rgba(0,0,0,0.20)' },
+            default: {
+                elevation: 4,
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.2,
+                shadowRadius: 4,
+            },
+        }),
     },
     fabText: { color: Colors.white, fontSize: 28, fontWeight: 'normal', lineHeight: 32 },
 });

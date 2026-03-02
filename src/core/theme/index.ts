@@ -3,6 +3,8 @@
 // Import individual tokens or the default `theme` object.
 // =============================================================================
 
+import { Platform } from 'react-native';
+
 // ---------------------------------------------------------------------------
 // Colors
 // ---------------------------------------------------------------------------
@@ -111,27 +113,36 @@ export const BorderRadius = {
 // ---------------------------------------------------------------------------
 
 export const Shadow = {
-    sm: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 0.06,
-        shadowRadius: 2,
-        elevation: 2,
-    },
-    md: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.10,
-        shadowRadius: 6,
-        elevation: 4,
-    },
-    lg: {
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.15,
-        shadowRadius: 12,
-        elevation: 8,
-    },
+    sm: Platform.select({
+        web: { boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
+        default: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.06,
+            shadowRadius: 2,
+            elevation: 2,
+        },
+    }),
+    md: Platform.select({
+        web: { boxShadow: '0 2px 8px rgba(0,0,0,0.10)' },
+        default: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.10,
+            shadowRadius: 6,
+            elevation: 4,
+        },
+    }),
+    lg: Platform.select({
+        web: { boxShadow: '0 4px 16px rgba(0,0,0,0.15)' },
+        default: {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            elevation: 8,
+        },
+    }),
 } as const;
 
 // ---------------------------------------------------------------------------

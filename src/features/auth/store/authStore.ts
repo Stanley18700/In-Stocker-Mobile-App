@@ -43,7 +43,19 @@ export const useAuthStore = create<AuthState>((set) => ({
             return null; // null = success
         } catch (e: any) {
             set({ isLoading: false });
-            return e.message ?? 'Login failed. Please try again.';
+            const code: string = e?.code ?? '';
+            const friendly: Record<string, string> = {
+                'auth/invalid-credential': 'Incorrect email or password.',
+                'auth/user-not-found': 'No account found with this email.',
+                'auth/wrong-password': 'Incorrect password.',
+                'auth/invalid-email': 'Please enter a valid email address.',
+                'auth/user-disabled': 'This account has been disabled.',
+                'auth/too-many-requests': 'Too many attempts. Please try again later.',
+                'auth/network-request-failed': 'Network error. Check your connection.',
+                'auth/configuration-not-found': 'Authentication is not configured. Contact support.',
+                'auth/operation-not-allowed': 'Email/Password sign-in is not enabled.',
+            };
+            return friendly[code] ?? 'Login failed. Please try again.';
         }
     },
 
