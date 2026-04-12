@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     useWindowDimensions,
 } from 'react-native';
+
 import { BarChart } from 'react-native-gifted-charts';
 import { useSales } from '../hooks/useSales';
 import { useReports, Period } from '../hooks/useReports';
@@ -19,6 +20,8 @@ const PERIODS: { label: string; value: Period }[] = [
     { label: '7 days', value: 7 },
     { label: '30 days', value: 30 },
     { label: '90 days', value: 90 },
+    { label: 'This Month', value: 'month' },
+    { label: 'This Year', value: 'year' },
 ];
 
 export default function ReportsScreen() {
@@ -53,13 +56,18 @@ export default function ReportsScreen() {
     const maxBar = Math.max(...report.dailyBars.map((b) => b.value), 1);
     const yAxisMax = Math.ceil(maxBar / 100) * 100 || 100;
 
+    // Dynamic bar sizing based on the number of bars
+    const barCount = report.dailyBars.length;
+    const barWidth = barCount <= 7 ? 32 : barCount <= 14 ? 20 : barCount <= 31 ? 10 : 8;
+    const barSpacing = barCount <= 7 ? 20 : barCount <= 14 ? 10 : barCount <= 31 ? 4 : 3;
+
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.inner}>
             {/* Period picker */}
-            <View style={styles.periodRow}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.periodRow} contentContainerStyle={styles.periodRowContent}>
                 {PERIODS.map((p) => (
                     <TouchableOpacity
-                        key={p.value}
+                        key={String(p.value)}
                         style={[
                             styles.periodChip,
                             period === p.value && styles.periodChipActive,
@@ -76,12 +84,13 @@ export default function ReportsScreen() {
                         </Text>
                     </TouchableOpacity>
                 ))}
-            </View>
+            </ScrollView>
+
 
             {/* Revenue chart */}
             <View style={styles.card}>
                 <Text style={styles.cardTitle}>
-                    Revenue — Last {period} days
+                    Revenue — {report.periodLabel}
                 </Text>
 
                 {isLoading ? (
@@ -98,8 +107,8 @@ export default function ReportsScreen() {
                         data={barData}
                         width={chartWidth}
                         height={200}
-                        barWidth={period <= 7 ? 32 : period <= 30 ? 14 : 8}
-                        spacing={period <= 7 ? 20 : period <= 30 ? 6 : 3}
+                        barWidth={barWidth}
+                        spacing={barSpacing}
                         noOfSections={4}
                         maxValue={yAxisMax}
                         yAxisTextStyle={styles.axisText}
@@ -199,13 +208,16 @@ const styles = StyleSheet.create({
 
     // Period chips
     periodRow: {
-        flexDirection: 'row',
-        gap: Spacing.sm,
         marginBottom: Spacing.md,
     },
+    periodRowContent: {
+        flexDirection: 'row',
+        gap: Spacing.sm,
+        paddingRight: Spacing.sm,
+    },
     periodChip: {
-        flex: 1,
         paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
         borderRadius: BorderRadius.md,
         borderWidth: 1.5,
         borderColor: Colors.border,

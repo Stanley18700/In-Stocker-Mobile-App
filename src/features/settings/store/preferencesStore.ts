@@ -20,7 +20,7 @@ interface PreferencesState extends Preferences {
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
-    currency: '฿',
+    currency: 'K',
     hydrated: false,
 
     setCurrency: (currency) => {

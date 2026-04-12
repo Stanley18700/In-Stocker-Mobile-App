@@ -12,6 +12,8 @@ export function useAuth() {
             try {
                 const data = await authService.signIn(email, password);
                 setUser(data.user);
+            } catch (e) {
+                throw e; // re-throw so LoginScreen can display the error
             } finally {
                 setLoading(false);
             }
@@ -30,6 +32,8 @@ export function useAuth() {
             try {
                 const data = await authService.signUp(email, password, shopName, ownerName);
                 setUser(data.user);
+            } catch (e) {
+                throw e; // re-throw so RegisterScreen can display the error
             } finally {
                 setLoading(false);
             }
@@ -44,3 +48,4 @@ export function useAuth() {
 
     return { user, isLoading, signIn, signUp, signOut, initializeAuth };
 }
+

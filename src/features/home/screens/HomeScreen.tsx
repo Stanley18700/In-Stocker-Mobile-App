@@ -220,6 +220,17 @@ export default function HomeScreen() {
                     }
                 />
                 <QuickAction
+                    icon="📋"
+                    label="Restock Plan"
+                    color={Colors.primary}
+                    bg={Colors.primaryLight}
+                    onPress={() =>
+                        navigation.navigate('Inventory', {
+                            screen: 'BufferStock',
+                        })
+                    }
+                />
+                <QuickAction
                     icon="🔔"
                     label="Alerts"
                     color={
@@ -230,6 +241,7 @@ export default function HomeScreen() {
                     }
                     onPress={() => navigation.navigate('Alerts')}
                 />
+
             </View>
 
             {/* ── Recent sales ────────────────────────────────────────────── */}

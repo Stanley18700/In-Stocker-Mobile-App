@@ -31,6 +31,7 @@ export type InventoryStackParamList = {
     AddProduct: { scannedSku?: string } | undefined;
     EditProduct: { productId: string };
     BarcodeScanner: { returnTo: 'AddProduct' };
+    BufferStock: undefined;
 };
 
 // Sales stack

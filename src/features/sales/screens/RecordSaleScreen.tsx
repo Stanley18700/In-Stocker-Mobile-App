@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -7,6 +7,7 @@ import {
     StyleSheet,
     Alert,
     ActivityIndicator,
+    TextInput,
 } from 'react-native';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSales } from '../hooks/useSales';
@@ -23,10 +24,15 @@ type Props = {
 export default function RecordSaleScreen({ navigation }: Props) {
     const { products, fetchProducts } = useInventory();
     const { cart, cartTotal, cartItemCount, addProductToCart, removeFromCart, checkout, isLoading } = useSales();
+    const [query, setQuery] = useState('');
 
     useEffect(() => {
         fetchProducts();
     }, []);
+
+    const filtered = query.trim()
+        ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
+        : products;
 
     const handleCheckout = async () => {
         if (cart.length === 0) {
@@ -78,8 +84,24 @@ export default function RecordSaleScreen({ navigation }: Props) {
 
     return (
         <View style={styles.container}>
+            <View style={styles.searchBar}>
+                <Text style={styles.searchIcon}>🔍</Text>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search products..."
+                    placeholderTextColor={Colors.textMuted}
+                    value={query}
+                    onChangeText={setQuery}
+                    returnKeyType="search"
+                />
+                {query.length > 0 && (
+                    <TouchableOpacity onPress={() => setQuery('')}>
+                        <Text style={styles.clearBtn}>✕</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
             <FlatList
-                data={products}
+                data={filtered}
                 keyExtractor={(item) => item.id}
                 renderItem={renderProduct}
                 contentContainerStyle={styles.list}
@@ -103,9 +125,29 @@ export default function RecordSaleScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
+    searchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
+        gap: Spacing.sm,
+    },
+    searchIcon: { fontSize: 16 },
+    searchInput: {
+        flex: 1,
+        fontSize: FontSize.md,
+        color: Colors.textPrimary,
+        height: 36,
+        paddingVertical: 0,
+    },
+    clearBtn: { fontSize: 14, color: Colors.textMuted, padding: 4 },
     list: { padding: Spacing.md },
     historyLink: { alignSelf: 'flex-end', marginBottom: Spacing.sm },
     historyLinkText: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: '600' },
+
     productRow: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.md,

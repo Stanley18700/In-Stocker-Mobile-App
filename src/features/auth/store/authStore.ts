@@ -44,6 +44,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         } catch (e: any) {
             set({ isLoading: false });
             const code: string = e?.code ?? '';
+            console.error('[Auth] Login failed:', code, e?.message);
             const friendly: Record<string, string> = {
                 'auth/invalid-credential': 'Incorrect email or password.',
                 'auth/user-not-found': 'No account found with this email.',
@@ -55,7 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
                 'auth/configuration-not-found': 'Authentication is not configured. Contact support.',
                 'auth/operation-not-allowed': 'Email/Password sign-in is not enabled.',
             };
-            return friendly[code] ?? 'Login failed. Please try again.';
+            return friendly[code] ?? `Login failed (${code || 'unknown'}). Please try again.`;
         }
     },
 

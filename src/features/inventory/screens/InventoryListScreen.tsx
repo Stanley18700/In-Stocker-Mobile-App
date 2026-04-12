@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     View,
     Text,
@@ -8,6 +8,7 @@ import {
     ActivityIndicator,
     RefreshControl,
     Platform,
+    TextInput,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
@@ -22,10 +23,19 @@ type Props = {
 
 export default function InventoryListScreen({ navigation }: Props) {
     const { products, isLoading, fetchProducts, setSelectedProduct } = useInventory();
+    const [query, setQuery] = useState('');
 
     useEffect(() => {
         fetchProducts();
     }, []);
+
+    const filtered = query.trim()
+        ? products.filter(
+              (p) =>
+                  p.name.toLowerCase().includes(query.toLowerCase()) ||
+                  p.sku.toLowerCase().includes(query.toLowerCase())
+          )
+        : products;
 
     const handlePress = (product: Product) => {
         setSelectedProduct(product);
@@ -54,11 +64,27 @@ export default function InventoryListScreen({ navigation }: Props) {
 
     return (
         <View style={styles.container}>
+            <View style={styles.searchBar}>
+                <Text style={styles.searchIcon}>🔍</Text>
+                <TextInput
+                    style={styles.searchInput}
+                    placeholder="Search by name or SKU..."
+                    placeholderTextColor={Colors.textMuted}
+                    value={query}
+                    onChangeText={setQuery}
+                    returnKeyType="search"
+                />
+                {query.length > 0 && (
+                    <TouchableOpacity onPress={() => setQuery('')}>
+                        <Text style={styles.clearBtn}>✕</Text>
+                    </TouchableOpacity>
+                )}
+            </View>
             {isLoading && products.length === 0 ? (
                 <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
             ) : (
                 <FlatList
-                    data={products}
+                    data={filtered}
                     keyExtractor={(item) => item.id}
                     renderItem={renderItem}
                     contentContainerStyle={styles.list}
@@ -66,7 +92,9 @@ export default function InventoryListScreen({ navigation }: Props) {
                         <RefreshControl refreshing={isLoading} onRefresh={fetchProducts} />
                     }
                     ListEmptyComponent={
-                        <Text style={styles.empty}>No products yet. Add your first one!</Text>
+                        <Text style={styles.empty}>
+                            {query ? 'No products match your search.' : 'No products yet. Add your first one!'}
+                        </Text>
                     }
                 />
             )}
@@ -80,8 +108,28 @@ export default function InventoryListScreen({ navigation }: Props) {
     );
 }
 
+
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
+    searchBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.surface,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
+        gap: Spacing.sm,
+    },
+    searchIcon: { fontSize: 16 },
+    searchInput: {
+        flex: 1,
+        fontSize: FontSize.md,
+        color: Colors.textPrimary,
+        height: 36,
+        paddingVertical: 0,
+    },
+    clearBtn: { fontSize: 14, color: Colors.textMuted, padding: 4 },
     list: { padding: Spacing.md },
     card: {
         backgroundColor: Colors.surface,
@@ -127,3 +175,4 @@ const styles = StyleSheet.create({
     },
     fabText: { color: Colors.white, fontSize: 28, fontWeight: 'normal', lineHeight: 32 },
 });
+

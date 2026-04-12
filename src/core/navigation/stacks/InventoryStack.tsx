@@ -6,6 +6,7 @@ import ProductDetailScreen from '../../../features/inventory/screens/ProductDeta
 import AddProductScreen from '../../../features/inventory/screens/AddProductScreen';
 import EditProductScreen from '../../../features/inventory/screens/EditProductScreen';
 import BarcodeScannerScreen from '../../../features/inventory/screens/BarcodeScannerScreen';
+import BufferStockScreen from '../../../features/inventory/screens/BufferStockScreen';
 import { Colors } from '../../theme';
 
 const Stack = createStackNavigator<InventoryStackParamList>();
@@ -44,6 +45,11 @@ export default function InventoryStack() {
                 name="BarcodeScanner"
                 component={BarcodeScannerScreen}
                 options={{ title: 'Scan Barcode', headerShown: false }}
+            />
+            <Stack.Screen
+                name="BufferStock"
+                component={BufferStockScreen}
+                options={{ title: 'Buffer Stock Recommendations' }}
             />
         </Stack.Navigator>
     );
