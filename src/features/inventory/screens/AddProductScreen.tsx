@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    Alert,
     ActivityIndicator,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
@@ -16,6 +15,7 @@ import { APP_CONFIG } from '../../../constants/config';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { InventoryStackParamList } from '../../../core/navigation/types';
+import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'AddProduct'>;
@@ -31,6 +31,9 @@ export default function AddProductScreen({ navigation, route }: Props) {
     const [threshold, setThreshold] = useState(String(APP_CONFIG.defaultLowStockThreshold));
     const [category, setCategory] = useState('');
 
+    const [errorModal, setErrorModal] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
     // Populate SKU when returning from the barcode scanner
     useEffect(() => {
         if (route.params?.scannedSku) {
@@ -42,30 +45,56 @@ export default function AddProductScreen({ navigation, route }: Props) {
         if (name) setSku(generateSKU(name));
     };
 
+    const showError = (msg: string) => {
+        setErrorMsg(msg);
+        setErrorModal(true);
+    };
+
     const handleSave = async () => {
-        if (!name || !sku || !quantity || !price) {
-            Alert.alert('Error', 'Name, SKU, quantity, and price are required.');
+        if (!name.trim() || !sku.trim() || !quantity.trim() || !price.trim()) {
+            showError('Name, SKU, quantity, and price are required.');
+            return;
+        }
+        const parsedQty = parseInt(quantity, 10);
+        const parsedPrice = parseFloat(price);
+        if (isNaN(parsedQty) || parsedQty < 0) {
+            showError('Please enter a valid quantity (0 or more).');
+            return;
+        }
+        if (isNaN(parsedPrice) || parsedPrice <= 0) {
+            showError('Please enter a valid price (must be greater than 0).');
             return;
         }
         try {
             await createProduct({
-                name,
-                sku,
-                quantity: parseInt(quantity, 10),
-                price: parseFloat(price),
-                lowStockThreshold: parseInt(threshold, 10),
-                category: category || undefined,
+                name: name.trim(),
+                sku: sku.trim(),
+                quantity: parsedQty,
+                price: parsedPrice,
+                lowStockThreshold: parseInt(threshold, 10) || APP_CONFIG.defaultLowStockThreshold,
+                category: category.trim() || undefined,
             });
             navigation.goBack();
         } catch (e: any) {
-            Alert.alert('Error', e.message);
+            showError(e.message ?? 'Could not save product. Please try again.');
         }
     };
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.inner} keyboardShouldPersistTaps="handled">
+        <ScrollView
+            style={styles.container}
+            contentContainerStyle={styles.inner}
+            keyboardShouldPersistTaps="handled"
+        >
             <Text style={styles.label}>Product Name *</Text>
-            <TextInput style={styles.input} value={name} onChangeText={setName} placeholder="e.g. Rice 5kg" placeholderTextColor={Colors.textMuted} onBlur={handleAutoSKU} />
+            <TextInput
+                style={styles.input}
+                value={name}
+                onChangeText={setName}
+                placeholder="e.g. Rice 5kg"
+                placeholderTextColor={Colors.textMuted}
+                onBlur={handleAutoSKU}
+            />
 
             <Text style={styles.label}>SKU *</Text>
             <View style={styles.skuRow}>
@@ -85,20 +114,63 @@ export default function AddProductScreen({ navigation, route }: Props) {
             </View>
 
             <Text style={styles.label}>Category</Text>
-            <TextInput style={styles.input} value={category} onChangeText={setCategory} placeholder="e.g. Food, Beverage" placeholderTextColor={Colors.textMuted} />
+            <TextInput
+                style={styles.input}
+                value={category}
+                onChangeText={setCategory}
+                placeholder="e.g. Food, Beverage"
+                placeholderTextColor={Colors.textMuted}
+            />
 
             <Text style={styles.label}>Quantity *</Text>
-            <TextInput style={styles.input} value={quantity} onChangeText={setQuantity} keyboardType="numeric" placeholder="0" placeholderTextColor={Colors.textMuted} />
+            <TextInput
+                style={styles.input}
+                value={quantity}
+                onChangeText={setQuantity}
+                keyboardType="numeric"
+                placeholder="0"
+                placeholderTextColor={Colors.textMuted}
+            />
 
             <Text style={styles.label}>Price ({APP_CONFIG.currencySymbol}) *</Text>
-            <TextInput style={styles.input} value={price} onChangeText={setPrice} keyboardType="decimal-pad" placeholder="0.00" placeholderTextColor={Colors.textMuted} />
+            <TextInput
+                style={styles.input}
+                value={price}
+                onChangeText={setPrice}
+                keyboardType="decimal-pad"
+                placeholder="0.00"
+                placeholderTextColor={Colors.textMuted}
+            />
 
             <Text style={styles.label}>Low Stock Alert Threshold</Text>
-            <TextInput style={styles.input} value={threshold} onChangeText={setThreshold} keyboardType="numeric" placeholder="5" placeholderTextColor={Colors.textMuted} />
+            <TextInput
+                style={styles.input}
+                value={threshold}
+                onChangeText={setThreshold}
+                keyboardType="numeric"
+                placeholder="5"
+                placeholderTextColor={Colors.textMuted}
+            />
 
-            <TouchableOpacity style={styles.button} onPress={handleSave} disabled={isLoading}>
-                {isLoading ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.buttonText}>Save Product</Text>}
+            <TouchableOpacity
+                style={[styles.button, isLoading && styles.buttonDisabled]}
+                onPress={handleSave}
+                disabled={isLoading}
+            >
+                {isLoading
+                    ? <ActivityIndicator color={Colors.white} />
+                    : <Text style={styles.buttonText}>Save Product</Text>}
             </TouchableOpacity>
+
+            {/* Validation / Save Error Modal */}
+            <AppModal
+                visible={errorModal}
+                icon="⚠️"
+                title="Cannot Save"
+                message={errorMsg}
+                confirmLabel="OK"
+                onConfirm={() => setErrorModal(false)}
+            />
         </ScrollView>
     );
 }
@@ -106,7 +178,12 @@ export default function AddProductScreen({ navigation, route }: Props) {
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
     inner: { padding: Spacing.lg },
-    label: { fontSize: FontSize.sm, fontWeight: 'bold', color: Colors.textSecondary, marginBottom: Spacing.xs },
+    label: {
+        fontSize: FontSize.sm,
+        fontWeight: 'bold',
+        color: Colors.textSecondary,
+        marginBottom: Spacing.xs,
+    },
     input: {
         backgroundColor: Colors.surface,
         borderWidth: 1,
@@ -124,6 +201,9 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.md,
         alignItems: 'center',
         marginTop: Spacing.sm,
+    },
+    buttonDisabled: {
+        backgroundColor: Colors.textMuted,
     },
     buttonText: { color: Colors.white, fontSize: FontSize.md, fontWeight: 'bold' },
     skuRow: {

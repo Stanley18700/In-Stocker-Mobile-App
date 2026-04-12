@@ -6,9 +6,9 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    Alert,
     ActivityIndicator,
 } from 'react-native';
+import AppModal from '../../../shared/components/AppModal';
 import { useInventory } from '../hooks/useInventory';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { APP_CONFIG } from '../../../constants/config';
@@ -33,23 +33,27 @@ export default function EditProductScreen({ navigation }: Props) {
     const [price, setPrice] = useState(String(selectedProduct.price));
     const [threshold, setThreshold] = useState(String(selectedProduct.lowStockThreshold));
     const [category, setCategory] = useState(selectedProduct.category ?? '');
+    const [errorModal, setErrorModal] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const showError = (msg: string) => { setErrorMsg(msg); setErrorModal(true); };
 
     const handleSave = async () => {
-        if (!name || !quantity || !price) {
-            Alert.alert('Error', 'Name, quantity, and price are required.');
+        if (!name.trim() || !quantity.trim() || !price.trim()) {
+            showError('Name, quantity, and price are required.');
             return;
         }
         try {
             await editProduct(selectedProduct.id, {
-                name,
+                name: name.trim(),
                 quantity: parseInt(quantity, 10),
                 price: parseFloat(price),
                 lowStockThreshold: parseInt(threshold, 10),
-                category: category || undefined,
+                category: category.trim() || undefined,
             });
             navigation.goBack();
         } catch (e: any) {
-            Alert.alert('Error', e.message);
+            showError(e.message ?? 'Could not save changes.');
         }
     };
 
@@ -116,7 +120,7 @@ export default function EditProductScreen({ navigation }: Props) {
             />
 
             <TouchableOpacity
-                style={styles.button}
+                style={[styles.button, isLoading && styles.buttonDisabled]}
                 onPress={handleSave}
                 disabled={isLoading}
             >
@@ -126,6 +130,15 @@ export default function EditProductScreen({ navigation }: Props) {
                     <Text style={styles.buttonText}>Save Changes</Text>
                 )}
             </TouchableOpacity>
+
+            <AppModal
+                visible={errorModal}
+                icon="⚠️"
+                title="Cannot Save"
+                message={errorMsg}
+                confirmLabel="OK"
+                onConfirm={() => setErrorModal(false)}
+            />
         </ScrollView>
     );
 }
@@ -168,5 +181,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: Spacing.sm,
     },
+    buttonDisabled: { backgroundColor: Colors.textMuted },
     buttonText: { color: Colors.white, fontSize: FontSize.md, fontWeight: 'bold' },
 });

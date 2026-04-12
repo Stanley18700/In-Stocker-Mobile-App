@@ -6,6 +6,7 @@ import ProfileScreen from '../../../features/auth/screens/ProfileScreen';
 import EditProfileScreen from '../../../features/settings/screens/EditProfileScreen';
 import EditPreferencesScreen from '../../../features/settings/screens/EditPreferencesScreen';
 import { Colors } from '../../theme';
+import BackButton from '../../../shared/components/BackButton';
 
 const Stack = createStackNavigator<SettingsStackParamList>();
 
@@ -27,17 +28,32 @@ export default function SettingsStack() {
             <Stack.Screen
                 name="Profile"
                 component={ProfileScreen}
-                options={{ title: 'My Profile' }}
+                options={({ navigation }) => ({
+                    title: 'My Profile',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
             <Stack.Screen
                 name="EditProfile"
                 component={EditProfileScreen}
-                options={{ title: 'Edit Profile' }}
+                options={({ navigation }) => ({
+                    title: 'Edit Profile',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
             <Stack.Screen
                 name="EditPreferences"
                 component={EditPreferencesScreen}
-                options={{ title: 'Preferences' }}
+                options={({ navigation }) => ({
+                    title: 'Preferences',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
         </Stack.Navigator>
     );

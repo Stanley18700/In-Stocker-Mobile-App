@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>In-Stocker — Demo Data Seeder</title>
+
+  <!-- Firebase SDK (compat mode — no bundler needed) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #F0F4FF;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 8px 40px rgba(37,99,235,0.13);
+      padding: 40px;
+      width: 100%;
+      max-width: 480px;
+    }
+
+    .logo { font-size: 48px; text-align: center; margin-bottom: 8px; }
+    h1 { text-align: center; font-size: 22px; color: #1E293B; margin-bottom: 4px; }
+    .subtitle { text-align: center; font-size: 13px; color: #64748B; margin-bottom: 28px; }
+
+    label { display: block; font-size: 12px; font-weight: 700; color: #64748B; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .5px; }
+    input {
+      width: 100%;
+      padding: 11px 14px;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 10px;
+      font-size: 15px;
+      color: #1E293B;
+      margin-bottom: 16px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    input:focus { border-color: #2563EB; }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #2563EB;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, opacity .2s;
+    }
+    .btn:hover { background: #1D4ED8; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .btn-danger { background: #EF4444; }
+    .btn-danger:hover { background: #DC2626; }
+
+    .btn-sm {
+      padding: 8px 16px;
+      font-size: 13px;
+      border-radius: 8px;
+      width: auto;
+    }
+
+    .progress-wrap { margin-top: 24px; display: none; }
+    .progress-bar-bg { background: #E2E8F0; border-radius: 8px; height: 8px; overflow: hidden; }
+    .progress-bar { background: #2563EB; height: 100%; border-radius: 8px; width: 0%; transition: width .3s; }
+    .progress-label { font-size: 12px; color: #64748B; margin-top: 6px; text-align: center; }
+
+    .log {
+      margin-top: 16px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 12px;
+      max-height: 220px;
+      overflow-y: auto;
+      display: none;
+    }
+    .log-item { padding: 3px 0; color: #334155; }
+    .log-item.ok { color: #16A34A; }
+    .log-item.err { color: #EF4444; }
+    .log-item.info { color: #2563EB; font-weight: 600; }
+
+    .summary {
+      margin-top: 20px;
+      background: #DCFCE7;
+      border: 1px solid #86EFAC;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      display: none;
+    }
+    .summary h3 { color: #16A34A; font-size: 16px; margin-bottom: 4px; }
+    .summary p { color: #166534; font-size: 13px; }
+
+    .error-box {
+      margin-top: 16px;
+      background: #FEE2E2;
+      border: 1px solid #FCA5A5;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 13px;
+      color: #DC2626;
+      display: none;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: #64748B;
+      margin-bottom: 10px;
+    }
+    .step-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #CBD5E1;
+      flex-shrink: 0;
+    }
+    .step-dot.active { background: #2563EB; }
+    .step-dot.done { background: #22C55E; }
+
+    .divider { border: none; border-top: 1px solid #E2E8F0; margin: 24px 0; }
+
+    .warning {
+      background: #FEF3C7;
+      border: 1px solid #FDE68A;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #92400E;
+      margin-bottom: 20px;
+    }
+
+    #reset-section { margin-top: 16px; display: none; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">📦</div>
+  <h1>In-Stocker — Demo Seeder</h1>
+  <p class="subtitle">Seeds 15 realistic products + 30 days of sales data into your account</p>
+
+  <div class="warning">
+    ⚠️ This tool adds data to your real Firebase project. Only use it on a demo/test account.
+  </div>
+
+  <!-- Login form -->
+  <div id="login-section">
+    <label for="email">Your Account Email</label>
+    <input type="email" id="email" placeholder="you@example.com" />
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="••••••••" />
+
+    <button class="btn" id="seed-btn" onclick="startSeed()">🌱 Seed Demo Data</button>
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div style="display:flex; gap:12px; margin-bottom:16px;">
+      <div class="step"><div class="step-dot" id="dot-auth"></div> Sign In</div>
+      <div class="step"><div class="step-dot" id="dot-products"></div> Products</div>
+      <div class="step"><div class="step-dot" id="dot-sales"></div> Sales</div>
+    </div>
+    <div class="progress-bar-bg"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="progress-label" id="progress-label">Starting…</div>
+    <div class="log" id="log"></div>
+  </div>
+
+  <!-- Success -->
+  <div class="summary" id="summary">
+    <h3>✅ Demo Data Seeded!</h3>
+    <p id="summary-text">Ready to go. Open the app and explore.</p>
+    <hr style="border:none;border-top:1px solid #86EFAC;margin:12px 0;">
+    <p style="font-size:12px;color:#166534;">
+      Products with low stock are already set up — check the Alerts tab!
+    </p>
+  </div>
+
+  <!-- Reset (optional) -->
+  <div id="reset-section">
+    <hr class="divider">
+    <button class="btn btn-danger btn-sm" onclick="resetData()">🗑️ Delete All My Demo Data</button>
+  </div>
+</div>
+
+<script>
+// ─── Firebase Config ──────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            "AIzaSyCWz3iWUKKLW6t4pCGfU27vh3MA1pVrkXE",
+  authDomain:        "in-stocker-d26b7.firebaseapp.com",
+  projectId:         "in-stocker-d26b7",
+  storageBucket:     "in-stocker-d26b7.firebasestorage.app",
+  messagingSenderId: "244355441035",
+  appId:             "1:244355441035:web:8a7c1de29e31c144648f8e",
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db   = firebase.firestore();
+
+// ─── Demo Products (Myanmar retail shop) ─────────────────────────────────────
+function makeProducts(userId, now) {
+  return [
+    { name: 'Mama Instant Noodles',        sku: 'NOOD-001', category: 'Food',       price: 500,    quantity: 120, lowStockThreshold: 30 },
+    { name: 'Shwe Myin Thar Soap (75g)',   sku: 'SOAP-001', category: 'Personal',   price: 1200,   quantity: 45,  lowStockThreshold: 10 },
+    { name: 'Bottled Water 500ml',          sku: 'WATR-001', category: 'Drink',      price: 300,    quantity: 200, lowStockThreshold: 50 },
+    { name: 'Myanmar Coffee Mix (20pcs)',   sku: 'COFF-001', category: 'Drink',      price: 4500,   quantity: 24,  lowStockThreshold: 8  },
+    { name: 'Cooking Oil 1L',              sku: 'OIL-001',  category: 'Grocery',    price: 3800,   quantity: 18,  lowStockThreshold: 6  },
+    { name: 'Jasmine Rice 1kg',            sku: 'RICE-001', category: 'Grocery',    price: 1500,   quantity: 60,  lowStockThreshold: 20 },
+    { name: 'Shampoo Sachet (Sunsilk)',    sku: 'SHMP-001', category: 'Personal',   price: 200,    quantity: 150, lowStockThreshold: 40 },
+    { name: 'Thanaka Powder 100g',         sku: 'THNK-001', category: 'Personal',   price: 2500,   quantity: 30,  lowStockThreshold: 8  },
+    { name: 'Myanmar Beer Can 330ml',      sku: 'BEER-001', category: 'Drink',      price: 2000,   quantity: 48,  lowStockThreshold: 12 },
+    { name: 'Fish Sauce 700ml',            sku: 'FISH-001', category: 'Grocery',    price: 2800,   quantity: 22,  lowStockThreshold: 6  },
+    { name: 'Chili Sauce (Sriracha)',      sku: 'CHIL-001', category: 'Grocery',    price: 3200,   quantity: 14,  lowStockThreshold: 5  },
+    { name: 'Toothpaste 150g',             sku: 'TPST-001', category: 'Personal',   price: 1800,   quantity: 28,  lowStockThreshold: 8  },
+    { name: 'Gas Lighter',                 sku: 'LGHT-001', category: 'Household',  price: 500,    quantity: 4,   lowStockThreshold: 10 }, // LOW STOCK ⚠️
+    { name: 'AAA Battery (4 pack)',        sku: 'BATT-001', category: 'Household',  price: 1200,   quantity: 35,  lowStockThreshold: 10 },
+    { name: 'Phone Credit Card 5,000K',    sku: 'CRDT-001', category: 'Top-Up',    price: 5000,   quantity: 3,   lowStockThreshold: 5  }, // LOW STOCK ⚠️
+  ].map(p => ({
+    ...p,
+    user_id:    userId,
+    is_active:  1,
+    created_at: now,
+    updated_at: now,
+  }));
+}
+
+// ─── Demo Sales (30 days of history) ─────────────────────────────────────────
+function makeSales(userId, productMap) {
+  const sales = [];
+  const now = Date.now();
+  const DAY = 86400000;
+
+  // Helper: pick random subset of product IDs
+  const productIds = Object.keys(productMap);
+  const pick = (n) => {
+    const shuffled = [...productIds].sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, n);
+  };
+
+  // 2-4 sales per week for 4 weeks
+  const dayOffsets = [0,1,2,4,6,8,9,11,13,15,16,18,20,21,22,24,25,27,28,29];
+
+  for (const offset of dayOffsets) {
+    const saleDate = new Date(now - offset * DAY);
+    const cartSize = 1 + Math.floor(Math.random() * 3); // 1–3 products
+    const pickedIds = pick(cartSize);
+
+    const items = pickedIds.map(pid => {
+      const p = productMap[pid];
+      const qty = 1 + Math.floor(Math.random() * 3);
+      return {
+        id:           crypto.randomUUID(),
+        product_id:   pid,
+        product_name: p.name,
+        quantity:     qty,
+        unit_price:   p.price,
+        subtotal:     qty * p.price,
+      };
+    });
+
+    const total = items.reduce((s, i) => s + i.subtotal, 0);
+
+    sales.push({
+      user_id:      userId,
+      total_amount: total,
+      items,
+      created_at:   saleDate.toISOString(),
+    });
+  }
+  return sales;
+}
+
+// ─── UI helpers ──────────────────────────────────────────────────────────────
+let logEl, progressBar, progressLabel;
+
+function setProgress(pct, label) {
+  progressBar.style.width = pct + '%';
+  progressLabel.textContent = label;
+}
+
+function addLog(msg, type = '') {
+  const div = document.createElement('div');
+  div.className = 'log-item ' + type;
+  div.textContent = msg;
+  logEl.appendChild(div);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+
+function setDot(id, state) {
+  document.getElementById('dot-' + id).className = 'step-dot ' + state;
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-box');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+// ─── Main seed function ───────────────────────────────────────────────────────
+async function startSeed() {
+  const email    = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const btn      = document.getElementById('seed-btn');
+  logEl          = document.getElementById('log');
+  progressBar    = document.getElementById('progress-bar');
+  progressLabel  = document.getElementById('progress-label');
+
+  if (!email || !password) { showError('Please enter your email and password.'); return; }
+
+  btn.disabled = true;
+  document.getElementById('error-box').style.display = 'none';
+  document.getElementById('progress-wrap').style.display = 'block';
+  logEl.style.display = 'block';
+
+  try {
+    // 1. Sign in
+    setDot('auth', 'active');
+    setProgress(5, 'Signing in…');
+    addLog('🔐 Signing in as ' + email + '…', 'info');
+    const cred = await auth.signInWithEmailAndPassword(email, password);
+    const uid  = cred.user.uid;
+    setDot('auth', 'done');
+    addLog('✅ Signed in. UID: ' + uid, 'ok');
+    setProgress(15, 'Preparing products…');
+
+    // 2. Seed products
+    setDot('products', 'active');
+    addLog('', '');
+    addLog('📦 Seeding 15 products…', 'info');
+    const now      = new Date().toISOString();
+    const products = makeProducts(uid, now);
+    const productMap = {};
+
+    for (let i = 0; i < products.length; i++) {
+      const ref = db.collection('products').doc();
+      await ref.set(products[i]);
+      productMap[ref.id] = products[i];
+      const pct = 15 + Math.round(((i + 1) / products.length) * 40);
+      setProgress(pct, `Adding product ${i + 1}/${products.length}: ${products[i].name}`);
+      addLog(`  ✅ ${products[i].name} (qty: ${products[i].quantity}, K ${products[i].price.toLocaleString()})`, 'ok');
+      await sleep(80);
+    }
+    setDot('products', 'done');
+    setProgress(55, 'Products done. Seeding sales history…');
+
+    // 3. Seed sales
+    setDot('sales', 'active');
+    addLog('', '');
+    addLog('🛒 Seeding 20 sales records (last 30 days)…', 'info');
+    const sales = makeSales(uid, productMap);
+
+    for (let i = 0; i < sales.length; i++) {
+      await db.collection('sales').add(sales[i]);
+      const pct = 55 + Math.round(((i + 1) / sales.length) * 40);
+      const date = sales[i].created_at.slice(0, 10);
+      setProgress(pct, `Adding sale ${i + 1}/${sales.length} (${date})…`);
+      addLog(`  ✅ Sale on ${date} — K ${sales[i].total_amount.toLocaleString()} (${sales[i].items.length} item(s))`, 'ok');
+      await sleep(60);
+    }
+    setDot('sales', 'done');
+    setProgress(100, 'Done!');
+
+    // 4. Summary
+    addLog('', '');
+    addLog('🎉 All done! Refresh the app to see your data.', 'info');
+
+    document.getElementById('summary').style.display = 'block';
+    document.getElementById('summary-text').textContent =
+      `${products.length} products · ${sales.length} sales records added to your account.`;
+
+    document.getElementById('reset-section').style.display = 'block';
+
+  } catch (err) {
+    addLog('❌ Error: ' + err.message, 'err');
+    showError('Error: ' + err.message);
+    btn.disabled = false;
+  }
+}
+
+// ─── Reset / delete all demo data ────────────────────────────────────────────
+async function resetData() {
+  if (!confirm('⚠️ This will delete ALL products and sales for your account. Are you sure?')) return;
+  const user = auth.currentUser;
+  if (!user) { alert('Please seed first to sign in.'); return; }
+
+  logEl.style.display = 'block';
+  addLog('🗑️ Deleting all products…', 'info');
+
+  const pSnap = await db.collection('products').where('user_id', '==', user.uid).get();
+  for (const doc of pSnap.docs) { await doc.ref.delete(); addLog('  ❌ Deleted product: ' + doc.data().name, 'err'); await sleep(30); }
+
+  addLog('🗑️ Deleting all sales…', 'info');
+  const sSnap = await db.collection('sales').where('user_id', '==', user.uid).get();
+  for (const doc of sSnap.docs) { await doc.ref.delete(); addLog('  ❌ Deleted sale: ' + doc.id, 'err'); await sleep(30); }
+
+  addLog('✅ All data deleted.', 'ok');
+  document.getElementById('summary').style.display = 'none';
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+</script>
+</body>
+</html>

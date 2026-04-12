@@ -8,6 +8,7 @@ import EditProductScreen from '../../../features/inventory/screens/EditProductSc
 import BarcodeScannerScreen from '../../../features/inventory/screens/BarcodeScannerScreen';
 import BufferStockScreen from '../../../features/inventory/screens/BufferStockScreen';
 import { Colors } from '../../theme';
+import BackButton from '../../../shared/components/BackButton';
 
 const Stack = createStackNavigator<InventoryStackParamList>();
 
@@ -29,17 +30,32 @@ export default function InventoryStack() {
             <Stack.Screen
                 name="ProductDetail"
                 component={ProductDetailScreen}
-                options={{ title: 'Product Detail' }}
+                options={({ navigation }) => ({
+                    title: 'Product Detail',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
             <Stack.Screen
                 name="AddProduct"
                 component={AddProductScreen}
-                options={{ title: 'Add Product' }}
+                options={({ navigation }) => ({
+                    title: 'Add Product',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
             <Stack.Screen
                 name="EditProduct"
                 component={EditProductScreen}
-                options={{ title: 'Edit Product' }}
+                options={({ navigation }) => ({
+                    title: 'Edit Product',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
             <Stack.Screen
                 name="BarcodeScanner"
@@ -49,7 +65,12 @@ export default function InventoryStack() {
             <Stack.Screen
                 name="BufferStock"
                 component={BufferStockScreen}
-                options={{ title: 'Buffer Stock Recommendations' }}
+                options={({ navigation }) => ({
+                    title: 'Buffer Stock Recommendations',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
         </Stack.Navigator>
     );

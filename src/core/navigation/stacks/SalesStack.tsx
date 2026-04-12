@@ -5,6 +5,7 @@ import RecordSaleScreen from '../../../features/sales/screens/RecordSaleScreen';
 import SalesHistoryScreen from '../../../features/sales/screens/SalesHistoryScreen';
 import ReportsScreen from '../../../features/sales/screens/ReportsScreen';
 import { Colors } from '../../theme';
+import BackButton from '../../../shared/components/BackButton';
 
 const Stack = createStackNavigator<SalesStackParamList>();
 
@@ -26,12 +27,22 @@ export default function SalesStack() {
             <Stack.Screen
                 name="SalesHistory"
                 component={SalesHistoryScreen}
-                options={{ title: 'Sales History' }}
+                options={({ navigation }) => ({
+                    title: 'Sales History',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
             <Stack.Screen
                 name="Reports"
                 component={ReportsScreen}
-                options={{ title: 'Reports & Analytics' }}
+                options={({ navigation }) => ({
+                    title: 'Reports & Analytics',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
             />
         </Stack.Navigator>
     );

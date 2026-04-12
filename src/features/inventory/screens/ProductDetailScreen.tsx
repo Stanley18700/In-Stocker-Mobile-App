@@ -1,10 +1,11 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency } from '../../../shared/utils/formatters';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { InventoryStackParamList } from '../../../core/navigation/types';
+import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'ProductDetail'>;
@@ -13,23 +14,16 @@ type Props = {
 
 export default function ProductDetailScreen({ navigation }: Props) {
     const { selectedProduct, removeProduct } = useInventory();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
 
     if (!selectedProduct) return null;
 
     const isLow = selectedProduct.quantity <= selectedProduct.lowStockThreshold;
 
-    const handleDelete = () => {
-        Alert.alert('Delete Product', `Delete "${selectedProduct.name}"?`, [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Delete',
-                style: 'destructive',
-                onPress: async () => {
-                    await removeProduct(selectedProduct.id);
-                    navigation.goBack();
-                },
-            },
-        ]);
+    const handleDelete = async () => {
+        setShowDeleteModal(false);
+        await removeProduct(selectedProduct.id);
+        navigation.goBack();
     };
 
     return (
@@ -72,9 +66,21 @@ export default function ProductDetailScreen({ navigation }: Props) {
                 <Text style={styles.editBtnText}>Edit Product</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
+            <TouchableOpacity style={styles.deleteBtn} onPress={() => setShowDeleteModal(true)}>
                 <Text style={styles.deleteBtnText}>Delete Product</Text>
             </TouchableOpacity>
+
+            <AppModal
+                visible={showDeleteModal}
+                icon="🗑️"
+                title="Delete Product"
+                message={`Are you sure you want to delete "${selectedProduct.name}"? This cannot be undone.`}
+                confirmLabel="Delete"
+                confirmVariant="danger"
+                onConfirm={handleDelete}
+                cancelLabel="Cancel"
+                onCancel={() => setShowDeleteModal(false)}
+            />
         </ScrollView>
     );
 }
