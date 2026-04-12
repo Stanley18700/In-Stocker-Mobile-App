@@ -5,10 +5,8 @@ import {
     FlatList,
     TouchableOpacity,
     StyleSheet,
-    Alert,
     ActivityIndicator,
     TextInput,
-    Platform,
 } from 'react-native';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSales } from '../hooks/useSales';
@@ -17,15 +15,20 @@ import { formatCurrency } from '../../../shared/utils/formatters';
 import { Product } from '../../../shared/types/product';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SalesStackParamList } from '../../../core/navigation/types';
+import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
     navigation: StackNavigationProp<SalesStackParamList, 'RecordSale'>;
 };
 
+type ModalState = 'none' | 'confirm' | 'success' | 'error';
+
 export default function RecordSaleScreen({ navigation }: Props) {
     const { products, fetchProducts } = useInventory();
     const { cart, cartTotal, cartItemCount, addProductToCart, removeFromCart, checkout, isLoading } = useSales();
     const [query, setQuery] = useState('');
+    const [modal, setModal] = useState<ModalState>('none');
+    const [errorMsg, setErrorMsg] = useState('');
 
     useEffect(() => {
         fetchProducts();
@@ -35,43 +38,20 @@ export default function RecordSaleScreen({ navigation }: Props) {
         ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
         : products;
 
-    const handleCheckout = async () => {
-        if (cart.length === 0) {
-            Alert.alert('Empty Cart', 'Add products to the cart first.');
-            return;
-        }
+    const handleCheckout = () => {
+        if (cart.length === 0) return;
+        setModal('confirm');
+    };
 
-        const message = `Confirm sale of ${cartItemCount} item(s) for ${formatCurrency(cartTotal)}?`;
-
-        const doCheckout = async () => {
-            try {
-                await checkout();
-                if (Platform.OS === 'web') {
-                    window.alert('✅ Sale recorded successfully!');
-                } else {
-                    Alert.alert('Success', 'Sale recorded!');
-                }
-            } catch (e: any) {
-                console.error('[Checkout] failed:', e);
-                if (Platform.OS === 'web') {
-                    window.alert(`Error: ${e.message}`);
-                } else {
-                    Alert.alert('Error', e.message);
-                }
-            }
-        };
-
-        if (Platform.OS === 'web') {
-            // Alert.alert with multiple buttons is broken on Expo Web.
-            // Use window.confirm() instead.
-            if (window.confirm(message)) {
-                await doCheckout();
-            }
-        } else {
-            Alert.alert('Confirm Sale', message, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Confirm', onPress: doCheckout },
-            ]);
+    const handleConfirm = async () => {
+        setModal('none');
+        try {
+            await checkout();
+            setModal('success');
+        } catch (e: any) {
+            console.error('[Checkout] failed:', e);
+            setErrorMsg(e.message ?? 'Something went wrong.');
+            setModal('error');
         }
     };
 
@@ -104,6 +84,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
 
     return (
         <View style={styles.container}>
+            {/* ── Search bar ─────────────────────────────────────────────── */}
             <View style={styles.searchBar}>
                 <Text style={styles.searchIcon}>🔍</Text>
                 <TextInput
@@ -120,6 +101,8 @@ export default function RecordSaleScreen({ navigation }: Props) {
                     </TouchableOpacity>
                 )}
             </View>
+
+            {/* ── Product list ────────────────────────────────────────────── */}
             <FlatList
                 data={filtered}
                 keyExtractor={(item) => item.id}
@@ -131,14 +114,51 @@ export default function RecordSaleScreen({ navigation }: Props) {
                     </TouchableOpacity>
                 }
             />
+
+            {/* ── Cart bar ────────────────────────────────────────────────── */}
             {cartItemCount > 0 && (
                 <View style={styles.cartBar}>
                     <Text style={styles.cartInfo}>{cartItemCount} items · {formatCurrency(cartTotal)}</Text>
                     <TouchableOpacity style={styles.checkoutBtn} onPress={handleCheckout} disabled={isLoading}>
-                        {isLoading ? <ActivityIndicator color={Colors.white} /> : <Text style={styles.checkoutText}>Checkout</Text>}
+                        {isLoading
+                            ? <ActivityIndicator color={Colors.white} />
+                            : <Text style={styles.checkoutText}>Checkout</Text>}
                     </TouchableOpacity>
                 </View>
             )}
+
+            {/* ── Confirm modal ───────────────────────────────────────────── */}
+            <AppModal
+                visible={modal === 'confirm'}
+                icon="🛒"
+                title="Confirm Sale"
+                message={`${cartItemCount} item(s)  ·  ${formatCurrency(cartTotal)}\n\nThis will deduct stock for all items.`}
+                confirmLabel="Confirm Sale"
+                onConfirm={handleConfirm}
+                cancelLabel="Cancel"
+                onCancel={() => setModal('none')}
+            />
+
+            {/* ── Success modal ───────────────────────────────────────────── */}
+            <AppModal
+                visible={modal === 'success'}
+                icon="✅"
+                title="Sale Recorded!"
+                message="Stock has been updated and the sale has been saved."
+                confirmLabel="Done"
+                onConfirm={() => setModal('none')}
+            />
+
+            {/* ── Error modal ─────────────────────────────────────────────── */}
+            <AppModal
+                visible={modal === 'error'}
+                icon="❌"
+                title="Checkout Failed"
+                message={errorMsg}
+                confirmLabel="OK"
+                confirmVariant="danger"
+                onConfirm={() => setModal('none')}
+            />
         </View>
     );
 }
@@ -167,7 +187,6 @@ const styles = StyleSheet.create({
     list: { padding: Spacing.md },
     historyLink: { alignSelf: 'flex-end', marginBottom: Spacing.sm },
     historyLinkText: { color: Colors.primary, fontSize: FontSize.sm, fontWeight: '600' },
-
     productRow: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.md,
