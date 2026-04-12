@@ -7,17 +7,14 @@ import {
     Platform,
     ScrollView,
     TouchableOpacity,
-    useWindowDimensions,
 } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import InputField from '../../../shared/components/InputField';
 import PrimaryButton from '../../../shared/components/PrimaryButton';
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../../core/theme';
+import { Colors, Spacing, FontSize, FontWeight } from '../../../core/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../core/navigation/types';
-
-const BRAND_BLUE = '#1D4ED8';
 
 function parseFirebaseError(code: string): string {
     switch (code) {
@@ -27,7 +24,7 @@ function parseFirebaseError(code: string): string {
         case 'auth/network-request-failed': return 'Network error. Check your connection.';
         case 'auth/too-many-requests': return 'Too many attempts. Please try again later.';
         case 'auth/configuration-not-found':
-        case 'auth/operation-not-allowed': return 'Email/Password sign-in is not enabled.';
+        case 'auth/operation-not-allowed': return 'Email/Password sign-in is not enabled. Please contact support.';
         default: return 'Registration failed. Please try again.';
     }
 }
@@ -35,7 +32,6 @@ function parseFirebaseError(code: string): string {
 export default function RegisterScreen() {
     const navigation = useNavigation<StackNavigationProp<AuthStackParamList, 'Register'>>();
     const { signUp, isLoading } = useAuth();
-    const { width } = useWindowDimensions();
 
     const [shopName, setShopName] = useState('');
     const [ownerName, setOwnerName] = useState('');
@@ -43,11 +39,9 @@ export default function RegisterScreen() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    const isTablet = width >= 600;
-    const formMaxWidth = isTablet ? 480 : undefined;
-
     const handleRegister = async () => {
         setError(null);
+
         if (!shopName.trim() || !ownerName.trim() || !email.trim() || !password) {
             setError('Please fill in all fields.');
             return;
@@ -60,238 +54,113 @@ export default function RegisterScreen() {
             setError('Password must be at least 6 characters.');
             return;
         }
+
         try {
             await signUp(email.trim(), password, shopName.trim(), ownerName.trim());
         } catch (e: any) {
-            setError(parseFirebaseError(e?.code ?? ''));
+            const code = e?.code ?? '';
+            setError(parseFirebaseError(code));
         }
     };
 
     return (
         <KeyboardAvoidingView
-            style={styles.root}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            style={styles.flex}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             <ScrollView
-                style={styles.scroll}
-                contentContainerStyle={styles.scrollContent}
+                contentContainerStyle={styles.container}
                 keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
             >
-                {/* ── Brand panel ─────────────────────────────────────── */}
-                <View style={styles.brandPanel}>
-                    <View style={styles.logoBadge}>
-                        <Text style={styles.logoEmoji}>📦</Text>
-                    </View>
-                    <Text style={styles.brandName}>In-Stocker</Text>
-                    <Text style={styles.brandTagline}>Set up your shop today</Text>
+                {/* Header */}
+                <Text style={styles.logo}>📦</Text>
+                <Text style={styles.title}>Create Account</Text>
+                <Text style={styles.subtitle}>Set up your shop on In-Stocker</Text>
+
+                {/* Form */}
+                <View style={styles.form}>
+                    <InputField
+                        label="Shop Name"
+                        value={shopName}
+                        onChangeText={setShopName}
+                        placeholder="e.g. My Corner Store"
+                    />
+                    <InputField
+                        label="Owner Name"
+                        value={ownerName}
+                        onChangeText={setOwnerName}
+                        placeholder="e.g. John Doe"
+                    />
+                    <InputField
+                        label="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        placeholder="you@example.com"
+                        keyboardType="email-address"
+                        textContentType="emailAddress"
+                    />
+                    <InputField
+                        label="Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="At least 6 characters"
+                        secureTextEntry
+                        textContentType="newPassword"
+                    />
+
+                    {error && <Text style={styles.error}>{error}</Text>}
+
+                    <PrimaryButton
+                        title="Create Account"
+                        onPress={handleRegister}
+                        loading={isLoading}
+                    />
                 </View>
 
-                {/* ── Form card ───────────────────────────────────────── */}
-                <View style={styles.card}>
-                    <View style={[styles.cardInner, formMaxWidth ? { maxWidth: formMaxWidth, alignSelf: 'center', width: '100%' } : undefined]}>
-                        <Text style={styles.cardTitle}>Create your account</Text>
-                        <Text style={styles.cardSubtitle}>It only takes a minute to get started.</Text>
-
-                        <View style={{ height: Spacing.md }} />
-
-                        <Text style={styles.sectionLabel}>SHOP INFORMATION</Text>
-                        <InputField
-                            label="Shop Name"
-                            value={shopName}
-                            onChangeText={setShopName}
-                            placeholder="e.g. My Corner Store"
-                            autoCapitalize="words"
-                        />
-                        <InputField
-                            label="Owner Name"
-                            value={ownerName}
-                            onChangeText={setOwnerName}
-                            placeholder="e.g. John Doe"
-                            autoCapitalize="words"
-                        />
-
-                        <Text style={[styles.sectionLabel, { marginTop: 4 }]}>ACCOUNT DETAILS</Text>
-                        <InputField
-                            label="Email address"
-                            value={email}
-                            onChangeText={setEmail}
-                            placeholder="you@example.com"
-                            keyboardType="email-address"
-                            textContentType="emailAddress"
-                            autoCapitalize="none"
-                        />
-                        <InputField
-                            label="Password"
-                            value={password}
-                            onChangeText={setPassword}
-                            placeholder="At least 6 characters"
-                            secureTextEntry
-                            textContentType="newPassword"
-                        />
-
-                        {error ? (
-                            <View style={styles.errorBanner}>
-                                <Text style={styles.errorIcon}>⚠️</Text>
-                                <Text style={styles.errorText}>{error}</Text>
-                            </View>
-                        ) : null}
-
-                        <PrimaryButton
-                            title="Create Account"
-                            onPress={handleRegister}
-                            loading={isLoading}
-                            style={styles.button}
-                        />
-
-                        <View style={styles.dividerRow}>
-                            <View style={styles.dividerLine} />
-                            <Text style={styles.dividerText}>or</Text>
-                            <View style={styles.dividerLine} />
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.footer}
-                            onPress={() => navigation.navigate('Login')}
-                            activeOpacity={0.7}
-                        >
-                            <Text style={styles.footerText}>
-                                Already have an account?{' '}
-                                <Text style={styles.footerLink}>Sign In →</Text>
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
+                {/* Sign In link */}
+                <TouchableOpacity
+                    style={styles.footer}
+                    onPress={() => navigation.navigate('Login')}
+                >
+                    <Text style={styles.footerText}>
+                        Already have an account?{' '}
+                        <Text style={styles.footerLink}>Sign In</Text>
+                    </Text>
+                </TouchableOpacity>
             </ScrollView>
         </KeyboardAvoidingView>
     );
 }
 
 const styles = StyleSheet.create({
-    root: {
-        flex: 1,
-        backgroundColor: BRAND_BLUE,
-    },
-    scroll: {
-        flex: 1,
-    },
-    scrollContent: {
+    flex: { flex: 1 },
+    container: {
         flexGrow: 1,
-    },
-
-    // ── Brand panel ──
-    brandPanel: {
-        alignItems: 'center',
-        paddingTop: 40,
-        paddingBottom: 30,
-        paddingHorizontal: Spacing.xl,
-    },
-    logoBadge: {
-        width: 64,
-        height: 64,
-        borderRadius: 18,
-        backgroundColor: 'rgba(255,255,255,0.15)',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 8,
-        borderWidth: 1.5,
-        borderColor: 'rgba(255,255,255,0.25)',
-    },
-    logoEmoji: {
-        fontSize: 32,
-    },
-    brandName: {
-        fontSize: 26,
-        fontWeight: FontWeight.extrabold,
-        color: '#FFFFFF',
-        letterSpacing: -0.5,
-        marginBottom: 2,
-    },
-    brandTagline: {
-        fontSize: FontSize.sm,
-        color: 'rgba(255,255,255,0.72)',
-        letterSpacing: 0.3,
-    },
-
-    // ── Form card ──
-    card: {
-        flex: 1,
         backgroundColor: Colors.background,
-        borderTopLeftRadius: 32,
-        borderTopRightRadius: 32,
-        paddingHorizontal: Spacing.xl,
-        paddingTop: Spacing.xl,
-        paddingBottom: 40,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: Spacing.xl,
     },
-    cardInner: {
-        flex: 1,
-    },
-    cardTitle: {
-        fontSize: FontSize.xl,
-        fontWeight: FontWeight.extrabold,
-        color: Colors.textPrimary,
-        marginBottom: 4,
-    },
-    cardSubtitle: {
-        fontSize: FontSize.sm,
-        color: Colors.textSecondary,
-    },
-    sectionLabel: {
-        fontSize: 10,
+    logo: { fontSize: 64, marginBottom: Spacing.sm },
+    title: {
+        fontSize: FontSize.xxl,
         fontWeight: FontWeight.bold,
-        color: Colors.textMuted,
-        letterSpacing: 1.2,
-        marginBottom: Spacing.sm,
+        color: Colors.textPrimary,
+        marginBottom: Spacing.xs,
     },
-
-    // ── Error banner ──
-    errorBanner: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#FEF2F2',
-        borderWidth: 1,
-        borderColor: '#FECACA',
-        borderRadius: BorderRadius.md,
-        padding: Spacing.sm,
-        paddingHorizontal: Spacing.md,
-        marginBottom: Spacing.md,
-        gap: Spacing.xs,
-    },
-    errorIcon: { fontSize: 14 },
-    errorText: {
-        flex: 1,
-        fontSize: FontSize.sm,
-        color: Colors.danger,
-        fontWeight: FontWeight.medium,
-    },
-
-    // ── Button ──
-    button: {
-        marginTop: Spacing.xs,
-        borderRadius: BorderRadius.lg,
-        minHeight: 52,
-    },
-
-    // ── Divider ──
-    dividerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginVertical: Spacing.lg,
-        gap: Spacing.sm,
-    },
-    dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
-    dividerText: {
-        fontSize: FontSize.xs,
-        color: Colors.textMuted,
-        fontWeight: FontWeight.medium,
-    },
-
-    // ── Footer ──
-    footer: { alignItems: 'center', paddingVertical: Spacing.sm },
-    footerText: {
+    subtitle: {
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
+        marginBottom: Spacing.xl,
+    },
+    form: { width: '100%', maxWidth: 400 },
+    error: {
+        color: Colors.danger,
+        fontSize: FontSize.sm,
+        marginBottom: Spacing.md,
         textAlign: 'center',
     },
-    footerLink: { color: BRAND_BLUE, fontWeight: FontWeight.bold },
+    footer: { marginTop: Spacing.xl },
+    footerText: { fontSize: FontSize.sm, color: Colors.textSecondary },
+    footerLink: { color: Colors.primary, fontWeight: FontWeight.bold },
 });
