@@ -1,13 +1,10 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeAuth, getReactNativePersistence, browserLocalPersistence, getAuth } from "@firebase/auth";
+import { initializeAuth, browserLocalPersistence, getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-import { Platform } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ---------------------------------------------------------------------------
 // Firebase config — EXPO_PUBLIC_* variables are inlined at build time by Metro.
-// They must be accessed with DIRECT property names (not bracket/variable notation)
-// so Metro can statically replace them. Do NOT use process.env[variable].
+// Use DIRECT property access only (not bracket notation) so Metro can replace them.
 // ---------------------------------------------------------------------------
 
 const firebaseConfig = {
@@ -17,34 +14,31 @@ const firebaseConfig = {
     storageBucket:     process.env.EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET,
     messagingSenderId: process.env.EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     appId:             process.env.EXPO_PUBLIC_FIREBASE_APP_ID,
-    measurementId:     process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID, // optional
+    measurementId:     process.env.EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
 // ---------------------------------------------------------------------------
-// Singleton guard — prevents "Firebase App named '[DEFAULT]' already exists"
-// and "initializeAuth() has already been called" errors on Expo hot reloads.
-// Capture BEFORE calling initializeApp so the flag is accurate.
+// Singleton guard — must capture BEFORE initializeApp so the flag is accurate.
+// Prevents "already exists" / "already called" crashes on hot reload.
 // ---------------------------------------------------------------------------
 
 const wasAlreadyInitialized = getApps().length > 0;
 const app = wasAlreadyInitialized ? getApp() : initializeApp(firebaseConfig);
 
 // ---------------------------------------------------------------------------
-// Auth — use the correct persistence adapter per platform.
-// On hot reload the auth instance already exists, so we just retrieve it.
+// Auth — browserLocalPersistence keeps the user logged in across page refreshes
+// (stored in localStorage). getReactNativePersistence is a mobile-only concept
+// and is not needed for web deployments.
 // ---------------------------------------------------------------------------
 
 export const auth = wasAlreadyInitialized
     ? getAuth(app)
-    : initializeAuth(app, {
-        persistence: Platform.OS === 'web'
-            ? browserLocalPersistence
-            : getReactNativePersistence(AsyncStorage),
-    });
+    : initializeAuth(app, { persistence: browserLocalPersistence });
 
 // ---------------------------------------------------------------------------
 // Firestore
 // ---------------------------------------------------------------------------
 
 export const db = getFirestore(app);
+
 
