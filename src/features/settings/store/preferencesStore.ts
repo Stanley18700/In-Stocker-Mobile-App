@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 // preferencesStore — persists app-level user preferences via AsyncStorage.
-// Stores: currency symbol, (threshold lives in alertsStore).
+// Stores: currency symbol, default low-stock threshold.
 // ---------------------------------------------------------------------------
 
 import { create } from 'zustand';
@@ -10,21 +10,29 @@ const PREFS_KEY = 'instocker_prefs';
 
 export interface Preferences {
     currency: string;
+    threshold: number;
 }
 
 interface PreferencesState extends Preferences {
     hydrated: boolean;
     setCurrency: (currency: string) => void;
+    setThreshold: (threshold: number) => void;
     hydrate: () => Promise<void>;
     persist: () => Promise<void>;
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     currency: 'K',
+    threshold: 5,
     hydrated: false,
 
     setCurrency: (currency) => {
         set({ currency });
+        get().persist();
+    },
+
+    setThreshold: (threshold) => {
+        set({ threshold });
         get().persist();
     },
 
@@ -46,8 +54,8 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     // Write current prefs back to AsyncStorage
     persist: async () => {
         try {
-            const { currency } = get();
-            await AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ currency }));
+            const { currency, threshold } = get();
+            await AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ currency, threshold }));
         } catch {
             // silently ignore write errors
         }

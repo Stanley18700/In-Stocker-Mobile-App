@@ -1,12 +1,12 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius } from '../../../core/theme';
 import { useAuthStore } from '../../auth/store/authStore';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SettingsStackParamList } from '../../../core/navigation/types';
-import { useAlertsStore } from '../../alerts/store/alertsStore';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { APP_CONFIG } from '../../../constants/config';
+import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'SettingsList'>;
@@ -17,20 +17,12 @@ interface SettingsRow {
     label: string;
     value?: string;
     onPress: () => void;
-    danger?: boolean;
 }
 
 export default function SettingsScreen({ navigation }: Props) {
     const { user, logout } = useAuthStore();
-    const { threshold } = useAlertsStore();
-    const { currency } = usePreferencesStore();
-
-    const handleSignOut = () => {
-        Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Sign Out', style: 'destructive', onPress: logout },
-        ]);
-    };
+    const { threshold, currency } = usePreferencesStore();
+    const [showSignOutModal, setShowSignOutModal] = useState(false);
 
     const rows: SettingsRow[] = [
         {
@@ -71,10 +63,7 @@ export default function SettingsScreen({ navigation }: Props) {
                 {rows.map((row, i) => (
                     <TouchableOpacity
                         key={row.label}
-                        style={[
-                            styles.row,
-                            i < rows.length - 1 && styles.rowBorder,
-                        ]}
+                        style={[styles.row, i < rows.length - 1 && styles.rowBorder]}
                         onPress={row.onPress}
                         activeOpacity={0.7}
                     >
@@ -91,13 +80,24 @@ export default function SettingsScreen({ navigation }: Props) {
             </View>
 
             {/* Sign out */}
-            <TouchableOpacity style={styles.signOutBtn} onPress={handleSignOut}>
+            <TouchableOpacity style={styles.signOutBtn} onPress={() => setShowSignOutModal(true)}>
                 <Text style={styles.signOutText}>Sign Out</Text>
             </TouchableOpacity>
 
-            <Text style={styles.version}>
-                {APP_CONFIG.appName} v1.0.0
-            </Text>
+            <Text style={styles.version}>{APP_CONFIG.appName} v1.0.0</Text>
+
+            {/* Sign-out confirmation modal */}
+            <AppModal
+                visible={showSignOutModal}
+                icon="🚪"
+                title="Sign Out"
+                message="Are you sure you want to sign out?"
+                confirmLabel="Sign Out"
+                confirmVariant="danger"
+                onConfirm={() => { setShowSignOutModal(false); logout(); }}
+                cancelLabel="Cancel"
+                onCancel={() => setShowSignOutModal(false)}
+            />
         </ScrollView>
     );
 }
@@ -148,22 +148,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.md,
     },
-    rowBorder: {
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-    },
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
     rowIcon: { fontSize: 20, marginRight: Spacing.md },
-    rowLabel: {
-        flex: 1,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-    },
+    rowLabel: { flex: 1, fontSize: FontSize.md, color: Colors.textPrimary },
     rowRight: { flexDirection: 'row', alignItems: 'center' },
-    rowValue: {
-        fontSize: FontSize.sm,
-        color: Colors.textMuted,
-        marginRight: Spacing.xs,
-    },
+    rowValue: { fontSize: FontSize.sm, color: Colors.textMuted, marginRight: Spacing.xs },
     chevron: { fontSize: 20, color: Colors.textMuted, lineHeight: 24 },
     signOutBtn: {
         backgroundColor: Colors.dangerLight,
@@ -173,9 +162,5 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.lg,
     },
     signOutText: { color: Colors.danger, fontWeight: FontWeight.bold, fontSize: FontSize.md },
-    version: {
-        textAlign: 'center',
-        fontSize: FontSize.xs,
-        color: Colors.textMuted,
-    },
+    version: { textAlign: 'center', fontSize: FontSize.xs, color: Colors.textMuted },
 });

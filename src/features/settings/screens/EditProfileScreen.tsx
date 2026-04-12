@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    Alert,
     ActivityIndicator,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -14,10 +13,13 @@ import { SettingsStackParamList } from '../../../core/navigation/types';
 import { useAuthStore } from '../../auth/store/authStore';
 import { authService } from '../../auth/services/authService';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../../core/theme';
+import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'EditProfile'>;
 };
+
+type ModalState = 'none' | 'validation' | 'error';
 
 export default function EditProfileScreen({ navigation }: Props) {
     const { user, updateUser } = useAuthStore();
@@ -25,6 +27,8 @@ export default function EditProfileScreen({ navigation }: Props) {
     const [shopName, setShopName] = useState(user?.shopName ?? '');
     const [ownerName, setOwnerName] = useState(user?.ownerName ?? '');
     const [isSaving, setIsSaving] = useState(false);
+    const [modal, setModal] = useState<ModalState>('none');
+    const [errorMsg, setErrorMsg] = useState('');
 
     const isDirty =
         shopName.trim() !== (user?.shopName ?? '') ||
@@ -32,7 +36,8 @@ export default function EditProfileScreen({ navigation }: Props) {
 
     const handleSave = async () => {
         if (!shopName.trim() || !ownerName.trim()) {
-            Alert.alert('Error', 'Shop name and owner name cannot be empty.');
+            setErrorMsg('Shop name and owner name cannot be empty.');
+            setModal('validation');
             return;
         }
         if (!user?.id) return;
@@ -47,7 +52,8 @@ export default function EditProfileScreen({ navigation }: Props) {
             updateUser({ shopName: shopName.trim(), ownerName: ownerName.trim() });
             navigation.goBack();
         } catch (e: any) {
-            Alert.alert('Save Failed', e.message ?? 'Could not update profile.');
+            setErrorMsg(e.message ?? 'Could not update profile.');
+            setModal('error');
         } finally {
             setIsSaving(false);
         }
@@ -102,6 +108,27 @@ export default function EditProfileScreen({ navigation }: Props) {
                     <Text style={styles.saveBtnText}>Save Changes</Text>
                 )}
             </TouchableOpacity>
+
+            {/* Validation error */}
+            <AppModal
+                visible={modal === 'validation'}
+                icon="⚠️"
+                title="Required Fields"
+                message={errorMsg}
+                confirmLabel="OK"
+                onConfirm={() => setModal('none')}
+            />
+
+            {/* Save error */}
+            <AppModal
+                visible={modal === 'error'}
+                icon="❌"
+                title="Save Failed"
+                message={errorMsg}
+                confirmLabel="OK"
+                confirmVariant="danger"
+                onConfirm={() => setModal('none')}
+            />
         </ScrollView>
     );
 }
@@ -150,9 +177,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: Spacing.sm,
     },
-    saveBtnDisabled: {
-        backgroundColor: Colors.textMuted,
-    },
+    saveBtnDisabled: { backgroundColor: Colors.textMuted },
     saveBtnText: {
         color: Colors.white,
         fontSize: FontSize.md,

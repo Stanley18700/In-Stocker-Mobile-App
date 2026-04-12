@@ -6,31 +6,33 @@ import {
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    Alert,
 } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SettingsStackParamList } from '../../../core/navigation/types';
-import { useAlertsStore } from '../../alerts/store/alertsStore';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../../core/theme';
+import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'EditPreferences'>;
 };
 
-const CURRENCY_OPTIONS = ['฿', '$', '€', '£', '¥'];
+// Myanmar Kyat first since that's the app's default currency
+const CURRENCY_OPTIONS = ['K', '฿', '$', '€', '£', '¥'];
 
 export default function EditPreferencesScreen({ navigation }: Props) {
-    const { threshold, setThreshold } = useAlertsStore();
-    const { currency, setCurrency } = usePreferencesStore();
+    const { threshold, setThreshold, currency, setCurrency } = usePreferencesStore();
 
     const [thresholdText, setThresholdText] = useState(String(threshold));
     const [selectedCurrency, setSelectedCurrency] = useState(currency);
+    const [errorModal, setErrorModal] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
 
     const handleSave = () => {
         const parsed = parseInt(thresholdText, 10);
         if (isNaN(parsed) || parsed < 1 || parsed > 9999) {
-            Alert.alert('Invalid Threshold', 'Please enter a whole number between 1 and 9999.');
+            setErrorMsg('Please enter a whole number between 1 and 9999.');
+            setErrorModal(true);
             return;
         }
         setThreshold(parsed);
@@ -89,6 +91,16 @@ export default function EditPreferencesScreen({ navigation }: Props) {
             <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
                 <Text style={styles.saveBtnText}>Save Preferences</Text>
             </TouchableOpacity>
+
+            {/* Validation error modal */}
+            <AppModal
+                visible={errorModal}
+                icon="⚠️"
+                title="Invalid Value"
+                message={errorMsg}
+                confirmLabel="OK"
+                onConfirm={() => setErrorModal(false)}
+            />
         </ScrollView>
     );
 }
