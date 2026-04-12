@@ -8,6 +8,7 @@ import {
     Alert,
     ActivityIndicator,
     TextInput,
+    Platform,
 } from 'react-native';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSales } from '../hooks/useSales';
@@ -39,20 +40,39 @@ export default function RecordSaleScreen({ navigation }: Props) {
             Alert.alert('Empty Cart', 'Add products to the cart first.');
             return;
         }
-        Alert.alert('Confirm Sale', `Total: ${formatCurrency(cartTotal)}`, [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Confirm',
-                onPress: async () => {
-                    try {
-                        await checkout();
-                        Alert.alert('Success', 'Sale recorded!');
-                    } catch (e: any) {
-                        Alert.alert('Error', e.message);
-                    }
-                },
-            },
-        ]);
+
+        const message = `Confirm sale of ${cartItemCount} item(s) for ${formatCurrency(cartTotal)}?`;
+
+        const doCheckout = async () => {
+            try {
+                await checkout();
+                if (Platform.OS === 'web') {
+                    window.alert('✅ Sale recorded successfully!');
+                } else {
+                    Alert.alert('Success', 'Sale recorded!');
+                }
+            } catch (e: any) {
+                console.error('[Checkout] failed:', e);
+                if (Platform.OS === 'web') {
+                    window.alert(`Error: ${e.message}`);
+                } else {
+                    Alert.alert('Error', e.message);
+                }
+            }
+        };
+
+        if (Platform.OS === 'web') {
+            // Alert.alert with multiple buttons is broken on Expo Web.
+            // Use window.confirm() instead.
+            if (window.confirm(message)) {
+                await doCheckout();
+            }
+        } else {
+            Alert.alert('Confirm Sale', message, [
+                { text: 'Cancel', style: 'cancel' },
+                { text: 'Confirm', onPress: doCheckout },
+            ]);
+        }
     };
 
     const renderProduct = ({ item }: { item: Product }) => {

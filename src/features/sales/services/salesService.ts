@@ -25,7 +25,9 @@ export const salesService = {
         }));
 
         await runTransaction(db, async (transaction) => {
-            // 1. Check stock for all items first
+            // 1. Read all product snapshots and validate stock
+            const productSnaps = new Map<string, any>();
+
             for (const item of cart) {
                 const productRef = doc(productsCollection, item.product.id);
                 const productSnap = await transaction.get(productRef);
@@ -40,6 +42,7 @@ export const salesService = {
                 if (productData.quantity < item.quantity) {
                     throw new Error(`Insufficient stock for "${item.product.name}".`);
                 }
+                productSnaps.set(item.product.id, { ref: productRef, data: productData });
             }
 
             // 2. Insert sale header
@@ -51,18 +54,16 @@ export const salesService = {
                 items: saleItems
             });
 
-            // 3. Deduct stock
+            // 3. Deduct stock (reuse snapshots from step 1 — no extra reads)
             for (const item of cart) {
-                const productRef = doc(productsCollection, item.product.id);
-                const productSnap = await transaction.get(productRef);
-                const newQuantity = productSnap.data()!.quantity - item.quantity;
-
-                transaction.update(productRef, {
-                    quantity: newQuantity,
+                const { ref, data } = productSnaps.get(item.product.id)!;
+                transaction.update(ref, {
+                    quantity: data.quantity - item.quantity,
                     updated_at: now
                 });
             }
         });
+
 
         const createdItems: SaleItem[] = saleItems.map(item => ({
             id: item.id,
