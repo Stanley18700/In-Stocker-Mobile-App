@@ -35,7 +35,7 @@ function parseFirebaseError(code: string): string {
 export default function RegisterScreen() {
     const navigation = useNavigation<StackNavigationProp<AuthStackParamList, 'Register'>>();
     const { signUp, isLoading } = useAuth();
-    const { width, height } = useWindowDimensions();
+    const { width } = useWindowDimensions();
 
     const [shopName, setShopName] = useState('');
     const [ownerName, setOwnerName] = useState('');
@@ -43,15 +43,8 @@ export default function RegisterScreen() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    // ── Responsive values ────────────────────────────────────────────────────
-    // Register has 4 fields so give it a smaller hero (25%) vs login (32%)
-    const isTablet      = width >= 600;
-    const heroHeight    = height * 0.25;
-    const cardMinHeight = height * 0.75;
-    const formMaxWidth  = isTablet ? Math.min(width * 0.72, 480) : undefined;
-    const logoSize      = Math.min(heroHeight * 0.40, 68);
-    const logoRadius    = logoSize * 0.28;
-    const titleSize     = Math.min(heroHeight * 0.20, 26);
+    const isTablet = width >= 600;
+    const formMaxWidth = isTablet ? 480 : undefined;
 
     const handleRegister = async () => {
         setError(null);
@@ -81,32 +74,22 @@ export default function RegisterScreen() {
         >
             <ScrollView
                 style={styles.scroll}
-                contentContainerStyle={{ minHeight: height }}
+                contentContainerStyle={styles.scrollContent}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 {/* ── Brand panel ─────────────────────────────────────── */}
-                <View style={[styles.brandPanel, { height: heroHeight }]}>
-                    <View style={[
-                        styles.logoBadge,
-                        { width: logoSize, height: logoSize, borderRadius: logoRadius },
-                    ]}>
-                        <Text style={{ fontSize: logoSize * 0.50 }}>📦</Text>
+                <View style={styles.brandPanel}>
+                    <View style={styles.logoBadge}>
+                        <Text style={styles.logoEmoji}>📦</Text>
                     </View>
-                    <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
-                    {heroHeight > 140 && (
-                        <Text style={styles.brandTagline}>Set up your shop today</Text>
-                    )}
+                    <Text style={styles.brandName}>In-Stocker</Text>
+                    <Text style={styles.brandTagline}>Set up your shop today</Text>
                 </View>
 
                 {/* ── Form card ───────────────────────────────────────── */}
-                <View style={[styles.card, { minHeight: cardMinHeight }]}>
-                    <View style={[
-                        styles.cardInner,
-                        formMaxWidth
-                            ? { maxWidth: formMaxWidth, alignSelf: 'center', width: '100%' }
-                            : undefined,
-                    ]}>
+                <View style={styles.card}>
+                    <View style={[styles.cardInner, formMaxWidth ? { maxWidth: formMaxWidth, alignSelf: 'center', width: '100%' } : undefined]}>
                         <Text style={styles.cardTitle}>Create your account</Text>
                         <Text style={styles.cardSubtitle}>It only takes a minute to get started.</Text>
 
@@ -191,16 +174,22 @@ const styles = StyleSheet.create({
     },
     scroll: {
         flex: 1,
-        backgroundColor: BRAND_BLUE,
+    },
+    scrollContent: {
+        flexGrow: 1,
     },
 
-    // ── Brand panel (pixel height) ──
+    // ── Brand panel ──
     brandPanel: {
-        backgroundColor: BRAND_BLUE,
         alignItems: 'center',
-        justifyContent: 'center',
+        paddingTop: 40,
+        paddingBottom: 30,
+        paddingHorizontal: Spacing.xl,
     },
     logoBadge: {
+        width: 64,
+        height: 64,
+        borderRadius: 18,
         backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center',
         alignItems: 'center',
@@ -208,7 +197,11 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.25)',
     },
+    logoEmoji: {
+        fontSize: 32,
+    },
     brandName: {
+        fontSize: 26,
         fontWeight: FontWeight.extrabold,
         color: '#FFFFFF',
         letterSpacing: -0.5,
@@ -222,15 +215,17 @@ const styles = StyleSheet.create({
 
     // ── Form card ──
     card: {
+        flex: 1,
         backgroundColor: Colors.background,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        borderTopLeftRadius: 32,
+        borderTopRightRadius: 32,
         paddingHorizontal: Spacing.xl,
         paddingTop: Spacing.xl,
         paddingBottom: 40,
-        marginTop: -16,
     },
-    cardInner: {},
+    cardInner: {
+        flex: 1,
+    },
     cardTitle: {
         fontSize: FontSize.xl,
         fontWeight: FontWeight.extrabold,
