@@ -5,7 +5,6 @@ import {
     FlatList,
     TouchableOpacity,
     StyleSheet,
-    ActivityIndicator,
     TextInput,
 } from 'react-native';
 import { useInventory } from '../../inventory/hooks/useInventory';
@@ -25,10 +24,11 @@ type ModalState = 'none' | 'confirm' | 'success' | 'error';
 
 export default function RecordSaleScreen({ navigation }: Props) {
     const { products, fetchProducts } = useInventory();
-    const { cart, cartTotal, cartItemCount, addProductToCart, removeFromCart, checkout, isLoading } = useSales();
+    const { cart, cartTotal, cartItemCount, addProductToCart, removeFromCart, checkout } = useSales();
     const [query, setQuery] = useState('');
     const [modal, setModal] = useState<ModalState>('none');
     const [errorMsg, setErrorMsg] = useState('');
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     useEffect(() => {
         fetchProducts();
@@ -45,6 +45,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
 
     const handleConfirm = async () => {
         setModal('none');
+        setIsCheckingOut(true);
         try {
             await checkout();
             setModal('success');
@@ -52,6 +53,8 @@ export default function RecordSaleScreen({ navigation }: Props) {
             console.error('[Checkout] failed:', e);
             setErrorMsg(e.message ?? 'Something went wrong.');
             setModal('error');
+        } finally {
+            setIsCheckingOut(false);
         }
     };
 
@@ -119,10 +122,14 @@ export default function RecordSaleScreen({ navigation }: Props) {
             {cartItemCount > 0 && (
                 <View style={styles.cartBar}>
                     <Text style={styles.cartInfo}>{cartItemCount} items · {formatCurrency(cartTotal)}</Text>
-                    <TouchableOpacity style={styles.checkoutBtn} onPress={handleCheckout} disabled={isLoading}>
-                        {isLoading
-                            ? <ActivityIndicator color={Colors.white} />
-                            : <Text style={styles.checkoutText}>Checkout</Text>}
+                    <TouchableOpacity
+                        style={[styles.checkoutBtn, isCheckingOut && styles.checkoutBtnLoading]}
+                        onPress={handleCheckout}
+                        disabled={isCheckingOut}
+                    >
+                        <Text style={styles.checkoutText}>
+                            {isCheckingOut ? 'Processing…' : 'Checkout →'}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             )}
@@ -236,7 +243,16 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.white,
         borderRadius: BorderRadius.md,
         paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm,
+        paddingVertical: Spacing.sm + 2,
+        minWidth: 110,
+        alignItems: 'center',
     },
-    checkoutText: { color: Colors.primary, fontWeight: '700', fontSize: FontSize.sm },
+    checkoutBtnLoading: {
+        opacity: 0.7,
+    },
+    checkoutText: {
+        color: Colors.primary,
+        fontWeight: '700',
+        fontSize: FontSize.md,
+    },
 });
