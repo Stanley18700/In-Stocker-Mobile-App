@@ -7,6 +7,7 @@ import {
     Platform,
     ScrollView,
     TouchableOpacity,
+    useWindowDimensions,
 } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import InputField from '../../../shared/components/InputField';
@@ -34,12 +35,25 @@ function parseFirebaseError(code: string): string {
 export default function RegisterScreen() {
     const navigation = useNavigation<StackNavigationProp<AuthStackParamList, 'Register'>>();
     const { signUp, isLoading } = useAuth();
+    const { width, height } = useWindowDimensions();
 
     const [shopName, setShopName] = useState('');
     const [ownerName, setOwnerName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    // ── Responsive values ───────────────────────────────────────────────────
+    const isSmall  = height < 680;
+    const isTablet = width >= 600;
+    const isLarge  = height > 900;
+
+    const heroV     = isSmall ? 24 : isLarge ? 56 : 40;
+    const logoSize  = isSmall ? 56 : 72;
+    const logoEmoji = isSmall ? 28 : 36;
+    const titleSize = isSmall ? 20 : 26;
+    const cardRadius = isTablet ? 32 : 28;
+    const formWidth = isTablet ? Math.min(width * 0.72, 480) : '100%' as const;
 
     const handleRegister = async () => {
         setError(null);
@@ -58,15 +72,15 @@ export default function RegisterScreen() {
         try {
             await signUp(email.trim(), password, shopName.trim(), ownerName.trim());
         } catch (e: any) {
-            const code = e?.code ?? '';
-            setError(parseFirebaseError(code));
+            setError(parseFirebaseError(e?.code ?? ''));
         }
     };
 
     return (
         <KeyboardAvoidingView
             style={styles.root}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
             <ScrollView
                 contentContainerStyle={styles.scroll}
@@ -74,96 +88,120 @@ export default function RegisterScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* ── Brand panel ─────────────────────────────────────── */}
-                <View style={styles.brandPanel}>
-                    <View style={styles.logoBadge}>
-                        <Text style={styles.logoEmoji}>📦</Text>
-                    </View>
-                    <Text style={styles.brandName}>In-Stocker</Text>
-                    <Text style={styles.brandTagline}>Set up your shop today</Text>
+                <View style={[styles.brandPanel, { paddingVertical: heroV }]}>
+                    {isTablet ? (
+                        <View style={{ width: formWidth, alignItems: 'center' }}>
+                            <BrandContent logoSize={logoSize} logoEmoji={logoEmoji} titleSize={titleSize} isSmall={isSmall} />
+                        </View>
+                    ) : (
+                        <BrandContent logoSize={logoSize} logoEmoji={logoEmoji} titleSize={titleSize} isSmall={isSmall} />
+                    )}
                 </View>
 
                 {/* ── Form card ───────────────────────────────────────── */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Create your account</Text>
-                    <Text style={styles.cardSubtitle}>
-                        It only takes a minute to get started.
-                    </Text>
-
-                    <View style={styles.formGap} />
-
-                    {/* Shop info section */}
-                    <Text style={styles.sectionLabel}>SHOP INFORMATION</Text>
-                    <InputField
-                        label="Shop Name"
-                        value={shopName}
-                        onChangeText={setShopName}
-                        placeholder="e.g. My Corner Store"
-                        autoCapitalize="words"
-                    />
-                    <InputField
-                        label="Owner Name"
-                        value={ownerName}
-                        onChangeText={setOwnerName}
-                        placeholder="e.g. John Doe"
-                        autoCapitalize="words"
-                    />
-
-                    {/* Account section */}
-                    <Text style={[styles.sectionLabel, { marginTop: Spacing.xs }]}>ACCOUNT DETAILS</Text>
-                    <InputField
-                        label="Email address"
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="you@example.com"
-                        keyboardType="email-address"
-                        textContentType="emailAddress"
-                        autoCapitalize="none"
-                    />
-                    <InputField
-                        label="Password"
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="At least 6 characters"
-                        secureTextEntry
-                        textContentType="newPassword"
-                    />
-
-                    {/* Error banner */}
-                    {error ? (
-                        <View style={styles.errorBanner}>
-                            <Text style={styles.errorIcon}>⚠️</Text>
-                            <Text style={styles.errorText}>{error}</Text>
-                        </View>
-                    ) : null}
-
-                    <PrimaryButton
-                        title="Create Account"
-                        onPress={handleRegister}
-                        loading={isLoading}
-                        style={styles.button}
-                    />
-
-                    {/* Divider */}
-                    <View style={styles.dividerRow}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>or</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
-
-                    {/* Sign in link */}
-                    <TouchableOpacity
-                        style={styles.footer}
-                        onPress={() => navigation.navigate('Login')}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.footerText}>
-                            Already have an account?{' '}
-                            <Text style={styles.footerLink}>Sign In →</Text>
+                <View style={[styles.cardOuter, { borderTopLeftRadius: cardRadius, borderTopRightRadius: cardRadius }]}>
+                    <View style={[styles.cardInner, { width: formWidth, alignSelf: 'center' }]}>
+                        <Text style={[styles.cardTitle, isSmall && { fontSize: FontSize.lg }]}>
+                            Create your account
                         </Text>
-                    </TouchableOpacity>
+                        <Text style={styles.cardSubtitle}>
+                            It only takes a minute to get started.
+                        </Text>
+
+                        <View style={{ height: isSmall ? Spacing.sm : Spacing.lg }} />
+
+                        {/* Shop info */}
+                        <Text style={styles.sectionLabel}>SHOP INFORMATION</Text>
+                        <InputField
+                            label="Shop Name"
+                            value={shopName}
+                            onChangeText={setShopName}
+                            placeholder="e.g. My Corner Store"
+                            autoCapitalize="words"
+                        />
+                        <InputField
+                            label="Owner Name"
+                            value={ownerName}
+                            onChangeText={setOwnerName}
+                            placeholder="e.g. John Doe"
+                            autoCapitalize="words"
+                        />
+
+                        {/* Account details */}
+                        <Text style={[styles.sectionLabel, { marginTop: Spacing.xs }]}>ACCOUNT DETAILS</Text>
+                        <InputField
+                            label="Email address"
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="you@example.com"
+                            keyboardType="email-address"
+                            textContentType="emailAddress"
+                            autoCapitalize="none"
+                        />
+                        <InputField
+                            label="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="At least 6 characters"
+                            secureTextEntry
+                            textContentType="newPassword"
+                        />
+
+                        {error ? (
+                            <View style={styles.errorBanner}>
+                                <Text style={styles.errorIcon}>⚠️</Text>
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        ) : null}
+
+                        <PrimaryButton
+                            title="Create Account"
+                            onPress={handleRegister}
+                            loading={isLoading}
+                            style={styles.button}
+                        />
+
+                        <View style={styles.dividerRow}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>or</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.footer}
+                            onPress={() => navigation.navigate('Login')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.footerText}>
+                                Already have an account?{' '}
+                                <Text style={styles.footerLink}>Sign In →</Text>
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
+    );
+}
+
+function BrandContent({
+    logoSize, logoEmoji, titleSize, isSmall,
+}: {
+    logoSize: number;
+    logoEmoji: number;
+    titleSize: number;
+    isSmall: boolean;
+}) {
+    return (
+        <>
+            <View style={[styles.logoBadge, { width: logoSize, height: logoSize, borderRadius: logoSize * 0.28 }]}>
+                <Text style={{ fontSize: logoEmoji }}>📦</Text>
+            </View>
+            <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
+            {!isSmall && (
+                <Text style={styles.brandTagline}>Set up your shop today</Text>
+            )}
+        </>
     );
 }
 
@@ -180,14 +218,9 @@ const styles = StyleSheet.create({
     brandPanel: {
         backgroundColor: BRAND_BLUE,
         alignItems: 'center',
-        paddingTop: 48,
-        paddingBottom: 44,
         paddingHorizontal: Spacing.xl,
     },
     logoBadge: {
-        width: 72,
-        height: 72,
-        borderRadius: 20,
         backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center',
         alignItems: 'center',
@@ -195,11 +228,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.25)',
     },
-    logoEmoji: {
-        fontSize: 36,
-    },
     brandName: {
-        fontSize: FontSize.xxxl,
         fontWeight: FontWeight.extrabold,
         color: '#FFFFFF',
         letterSpacing: -0.5,
@@ -212,16 +241,15 @@ const styles = StyleSheet.create({
     },
 
     // ── Form card ──
-    card: {
+    cardOuter: {
         flex: 1,
         backgroundColor: Colors.background,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        marginTop: -16,
         paddingHorizontal: Spacing.xl,
         paddingTop: Spacing.xl,
-        paddingBottom: Spacing.xxxl,
-        marginTop: -16,
+        paddingBottom: 40,
     },
+    cardInner: {},
     cardTitle: {
         fontSize: FontSize.xl,
         fontWeight: FontWeight.extrabold,
@@ -232,11 +260,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
     },
-    formGap: {
-        height: Spacing.lg,
-    },
-
-    // ── Section label ──
     sectionLabel: {
         fontSize: 10,
         fontWeight: FontWeight.bold,
@@ -258,9 +281,7 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.md,
         gap: Spacing.xs,
     },
-    errorIcon: {
-        fontSize: 14,
-    },
+    errorIcon: { fontSize: 14 },
     errorText: {
         flex: 1,
         fontSize: FontSize.sm,
@@ -272,7 +293,7 @@ const styles = StyleSheet.create({
     button: {
         marginTop: Spacing.xs,
         borderRadius: BorderRadius.lg,
-        minHeight: 54,
+        minHeight: 52,
     },
 
     // ── Divider ──
@@ -282,11 +303,7 @@ const styles = StyleSheet.create({
         marginVertical: Spacing.lg,
         gap: Spacing.sm,
     },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: Colors.border,
-    },
+    dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
     dividerText: {
         fontSize: FontSize.xs,
         color: Colors.textMuted,
@@ -294,17 +311,11 @@ const styles = StyleSheet.create({
     },
 
     // ── Footer ──
-    footer: {
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-    },
+    footer: { alignItems: 'center', paddingVertical: Spacing.sm },
     footerText: {
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
         textAlign: 'center',
     },
-    footerLink: {
-        color: BRAND_BLUE,
-        fontWeight: FontWeight.bold,
-    },
+    footerLink: { color: BRAND_BLUE, fontWeight: FontWeight.bold },
 });

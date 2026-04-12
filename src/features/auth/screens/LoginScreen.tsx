@@ -7,6 +7,7 @@ import {
     Text,
     TouchableOpacity,
     View,
+    useWindowDimensions,
 } from 'react-native';
 import { useAuthStore } from '../store/authStore';
 import InputField from '../../../shared/components/InputField';
@@ -17,15 +18,27 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../core/navigation/types';
 
 const BRAND_BLUE = '#1D4ED8';
-const BRAND_BLUE_DARK = '#1E40AF';
 
 export default function LoginScreen() {
     const navigation = useNavigation<StackNavigationProp<AuthStackParamList, 'Login'>>();
     const { login, isLoading } = useAuthStore();
+    const { width, height } = useWindowDimensions();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
+
+    // ── Responsive values ───────────────────────────────────────────────────
+    const isSmall    = height < 680;          // e.g. iPhone SE, short Android
+    const isTablet   = width  >= 600;         // tablets, landscape phones, web
+    const isLarge    = height > 900;          // large phones / iPads in portrait
+
+    const heroV      = isSmall ? 32 : isLarge ? 72 : 52;   // vertical padding in blue panel
+    const logoSize   = isSmall ? 60 : 76;
+    const logoEmoji  = isSmall ? 32 : 40;
+    const titleSize  = isSmall ? 22 : 28;
+    const cardRadius = isTablet ? 32 : 28;
+    const formWidth  = isTablet ? Math.min(width * 0.72, 480) : '100%' as const;
 
     const handleLogin = async () => {
         setError(null);
@@ -34,15 +47,14 @@ export default function LoginScreen() {
             return;
         }
         const result = await login(email.trim(), password);
-        if (result) {
-            setError(result);
-        }
+        if (result) setError(result);
     };
 
     return (
         <KeyboardAvoidingView
             style={styles.root}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
             <ScrollView
                 contentContainerStyle={styles.scroll}
@@ -50,75 +62,112 @@ export default function LoginScreen() {
                 showsVerticalScrollIndicator={false}
             >
                 {/* ── Brand panel ─────────────────────────────────────── */}
-                <View style={styles.brandPanel}>
-                    <View style={styles.logoBadge}>
-                        <Text style={styles.logoEmoji}>📦</Text>
-                    </View>
-                    <Text style={styles.brandName}>In-Stocker</Text>
-                    <Text style={styles.brandTagline}>Inventory made simple</Text>
+                <View style={[styles.brandPanel, { paddingVertical: heroV }]}>
+                    {isTablet ? (
+                        // On tablet/web: center the inner content with a max width
+                        <View style={{ width: formWidth, alignItems: 'center' }}>
+                            <BrandContent
+                                logoSize={logoSize}
+                                logoEmoji={logoEmoji}
+                                titleSize={titleSize}
+                                isSmall={isSmall}
+                            />
+                        </View>
+                    ) : (
+                        <BrandContent
+                            logoSize={logoSize}
+                            logoEmoji={logoEmoji}
+                            titleSize={titleSize}
+                            isSmall={isSmall}
+                        />
+                    )}
                 </View>
 
                 {/* ── Form card ───────────────────────────────────────── */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Welcome back 👋</Text>
-                    <Text style={styles.cardSubtitle}>Sign in to manage your shop</Text>
-
-                    <View style={styles.formGap} />
-
-                    <InputField
-                        label="Email address"
-                        value={email}
-                        onChangeText={setEmail}
-                        placeholder="you@example.com"
-                        keyboardType="email-address"
-                        textContentType="emailAddress"
-                        autoCapitalize="none"
-                    />
-                    <InputField
-                        label="Password"
-                        value={password}
-                        onChangeText={setPassword}
-                        placeholder="Enter your password"
-                        secureTextEntry
-                        textContentType="password"
-                    />
-
-                    {/* Error banner */}
-                    {error ? (
-                        <View style={styles.errorBanner}>
-                            <Text style={styles.errorIcon}>⚠️</Text>
-                            <Text style={styles.errorText}>{error}</Text>
-                        </View>
-                    ) : null}
-
-                    <PrimaryButton
-                        title="Sign In"
-                        onPress={handleLogin}
-                        loading={isLoading}
-                        style={styles.button}
-                    />
-
-                    {/* Divider */}
-                    <View style={styles.dividerRow}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>or</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
-
-                    {/* Sign up link */}
-                    <TouchableOpacity
-                        style={styles.footer}
-                        onPress={() => navigation.navigate('Register')}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.footerText}>
-                            Don't have an account?{' '}
-                            <Text style={styles.footerLink}>Create one free →</Text>
+                <View style={[styles.cardOuter, { borderTopLeftRadius: cardRadius, borderTopRightRadius: cardRadius }]}>
+                    {/* Centre content on wide screens */}
+                    <View style={[styles.cardInner, { width: formWidth, alignSelf: 'center' }]}>
+                        <Text style={[styles.cardTitle, isSmall && { fontSize: FontSize.lg }]}>
+                            Welcome back 👋
                         </Text>
-                    </TouchableOpacity>
+                        <Text style={styles.cardSubtitle}>Sign in to manage your shop</Text>
+
+                        <View style={{ height: isSmall ? Spacing.md : Spacing.lg }} />
+
+                        <InputField
+                            label="Email address"
+                            value={email}
+                            onChangeText={setEmail}
+                            placeholder="you@example.com"
+                            keyboardType="email-address"
+                            textContentType="emailAddress"
+                            autoCapitalize="none"
+                        />
+                        <InputField
+                            label="Password"
+                            value={password}
+                            onChangeText={setPassword}
+                            placeholder="Enter your password"
+                            secureTextEntry
+                            textContentType="password"
+                        />
+
+                        {error ? (
+                            <View style={styles.errorBanner}>
+                                <Text style={styles.errorIcon}>⚠️</Text>
+                                <Text style={styles.errorText}>{error}</Text>
+                            </View>
+                        ) : null}
+
+                        <PrimaryButton
+                            title="Sign In"
+                            onPress={handleLogin}
+                            loading={isLoading}
+                            style={styles.button}
+                        />
+
+                        <View style={styles.dividerRow}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>or</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.footer}
+                            onPress={() => navigation.navigate('Register')}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.footerText}>
+                                Don't have an account?{' '}
+                                <Text style={styles.footerLink}>Create one free →</Text>
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </ScrollView>
         </KeyboardAvoidingView>
+    );
+}
+
+// ── Extracted brand content so it can be wrapped for tablet ──────────────────
+function BrandContent({
+    logoSize, logoEmoji, titleSize, isSmall,
+}: {
+    logoSize: number;
+    logoEmoji: number;
+    titleSize: number;
+    isSmall: boolean;
+}) {
+    return (
+        <>
+            <View style={[styles.logoBadge, { width: logoSize, height: logoSize, borderRadius: logoSize * 0.28 }]}>
+                <Text style={{ fontSize: logoEmoji }}>📦</Text>
+            </View>
+            <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
+            {!isSmall && (
+                <Text style={styles.brandTagline}>Inventory made simple</Text>
+            )}
+        </>
     );
 }
 
@@ -135,14 +184,9 @@ const styles = StyleSheet.create({
     brandPanel: {
         backgroundColor: BRAND_BLUE,
         alignItems: 'center',
-        paddingTop: 60,
-        paddingBottom: 48,
         paddingHorizontal: Spacing.xl,
     },
     logoBadge: {
-        width: 80,
-        height: 80,
-        borderRadius: 22,
         backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center',
         alignItems: 'center',
@@ -150,11 +194,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.25)',
     },
-    logoEmoji: {
-        fontSize: 40,
-    },
     brandName: {
-        fontSize: FontSize.xxxl,
         fontWeight: FontWeight.extrabold,
         color: '#FFFFFF',
         letterSpacing: -0.5,
@@ -167,16 +207,16 @@ const styles = StyleSheet.create({
     },
 
     // ── Form card ──
-    card: {
+    cardOuter: {
         flex: 1,
         backgroundColor: Colors.background,
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
+        marginTop: -16,
         paddingHorizontal: Spacing.xl,
         paddingTop: Spacing.xl,
-        paddingBottom: Spacing.xxxl,
-        marginTop: -16,
-        minHeight: 480,
+        paddingBottom: 40,
+    },
+    cardInner: {
+        // width and alignSelf set dynamically above
     },
     cardTitle: {
         fontSize: FontSize.xl,
@@ -187,9 +227,6 @@ const styles = StyleSheet.create({
     cardSubtitle: {
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
-    },
-    formGap: {
-        height: Spacing.lg,
     },
 
     // ── Error banner ──
@@ -205,9 +242,7 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.md,
         gap: Spacing.xs,
     },
-    errorIcon: {
-        fontSize: 14,
-    },
+    errorIcon: { fontSize: 14 },
     errorText: {
         flex: 1,
         fontSize: FontSize.sm,
@@ -219,7 +254,7 @@ const styles = StyleSheet.create({
     button: {
         marginTop: Spacing.xs,
         borderRadius: BorderRadius.lg,
-        minHeight: 54,
+        minHeight: 52,
     },
 
     // ── Divider ──
@@ -229,11 +264,7 @@ const styles = StyleSheet.create({
         marginVertical: Spacing.lg,
         gap: Spacing.sm,
     },
-    dividerLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: Colors.border,
-    },
+    dividerLine: { flex: 1, height: 1, backgroundColor: Colors.border },
     dividerText: {
         fontSize: FontSize.xs,
         color: Colors.textMuted,
@@ -241,17 +272,11 @@ const styles = StyleSheet.create({
     },
 
     // ── Footer ──
-    footer: {
-        alignItems: 'center',
-        paddingVertical: Spacing.sm,
-    },
+    footer: { alignItems: 'center', paddingVertical: Spacing.sm },
     footerText: {
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
         textAlign: 'center',
     },
-    footerLink: {
-        color: BRAND_BLUE,
-        fontWeight: FontWeight.bold,
-    },
+    footerLink: { color: BRAND_BLUE, fontWeight: FontWeight.bold },
 });
