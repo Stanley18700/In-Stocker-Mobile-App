@@ -27,7 +27,7 @@ function parseFirebaseError(code: string): string {
         case 'auth/network-request-failed': return 'Network error. Check your connection.';
         case 'auth/too-many-requests': return 'Too many attempts. Please try again later.';
         case 'auth/configuration-not-found':
-        case 'auth/operation-not-allowed': return 'Email/Password sign-in is not enabled. Please contact support.';
+        case 'auth/operation-not-allowed': return 'Email/Password sign-in is not enabled.';
         default: return 'Registration failed. Please try again.';
     }
 }
@@ -43,17 +43,15 @@ export default function RegisterScreen() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    // ── Responsive values ───────────────────────────────────────────────────
-    const isSmall  = height < 680;
-    const isTablet = width >= 600;
-    const isLarge  = height > 900;
-
-    const heroV     = isSmall ? 24 : isLarge ? 56 : 40;
-    const logoSize  = isSmall ? 56 : 72;
-    const logoEmoji = isSmall ? 28 : 36;
-    const titleSize = isSmall ? 20 : 26;
-    const cardRadius = isTablet ? 32 : 28;
-    const formWidth = isTablet ? Math.min(width * 0.72, 480) : '100%' as const;
+    // ── Responsive values ────────────────────────────────────────────────────
+    // Register has 4 fields so give it a smaller hero (25%) vs login (32%)
+    const isTablet      = width >= 600;
+    const heroHeight    = height * 0.25;
+    const cardMinHeight = height * 0.75;
+    const formMaxWidth  = isTablet ? Math.min(width * 0.72, 480) : undefined;
+    const logoSize      = Math.min(heroHeight * 0.40, 68);
+    const logoRadius    = logoSize * 0.28;
+    const titleSize     = Math.min(heroHeight * 0.20, 26);
 
     const handleRegister = async () => {
         setError(null);
@@ -80,37 +78,40 @@ export default function RegisterScreen() {
         <KeyboardAvoidingView
             style={styles.root}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
             <ScrollView
-                contentContainerStyle={styles.scroll}
+                style={styles.scroll}
+                contentContainerStyle={{ minHeight: height }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 {/* ── Brand panel ─────────────────────────────────────── */}
-                <View style={[styles.brandPanel, { paddingVertical: heroV }]}>
-                    {isTablet ? (
-                        <View style={{ width: formWidth, alignItems: 'center' }}>
-                            <BrandContent logoSize={logoSize} logoEmoji={logoEmoji} titleSize={titleSize} isSmall={isSmall} />
-                        </View>
-                    ) : (
-                        <BrandContent logoSize={logoSize} logoEmoji={logoEmoji} titleSize={titleSize} isSmall={isSmall} />
+                <View style={[styles.brandPanel, { height: heroHeight }]}>
+                    <View style={[
+                        styles.logoBadge,
+                        { width: logoSize, height: logoSize, borderRadius: logoRadius },
+                    ]}>
+                        <Text style={{ fontSize: logoSize * 0.50 }}>📦</Text>
+                    </View>
+                    <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
+                    {heroHeight > 140 && (
+                        <Text style={styles.brandTagline}>Set up your shop today</Text>
                     )}
                 </View>
 
                 {/* ── Form card ───────────────────────────────────────── */}
-                <View style={[styles.cardOuter, { borderTopLeftRadius: cardRadius, borderTopRightRadius: cardRadius }]}>
-                    <View style={[styles.cardInner, { width: formWidth, alignSelf: 'center' }]}>
-                        <Text style={[styles.cardTitle, isSmall && { fontSize: FontSize.lg }]}>
-                            Create your account
-                        </Text>
-                        <Text style={styles.cardSubtitle}>
-                            It only takes a minute to get started.
-                        </Text>
+                <View style={[styles.card, { minHeight: cardMinHeight }]}>
+                    <View style={[
+                        styles.cardInner,
+                        formMaxWidth
+                            ? { maxWidth: formMaxWidth, alignSelf: 'center', width: '100%' }
+                            : undefined,
+                    ]}>
+                        <Text style={styles.cardTitle}>Create your account</Text>
+                        <Text style={styles.cardSubtitle}>It only takes a minute to get started.</Text>
 
-                        <View style={{ height: isSmall ? Spacing.sm : Spacing.lg }} />
+                        <View style={{ height: Spacing.md }} />
 
-                        {/* Shop info */}
                         <Text style={styles.sectionLabel}>SHOP INFORMATION</Text>
                         <InputField
                             label="Shop Name"
@@ -127,8 +128,7 @@ export default function RegisterScreen() {
                             autoCapitalize="words"
                         />
 
-                        {/* Account details */}
-                        <Text style={[styles.sectionLabel, { marginTop: Spacing.xs }]}>ACCOUNT DETAILS</Text>
+                        <Text style={[styles.sectionLabel, { marginTop: 4 }]}>ACCOUNT DETAILS</Text>
                         <InputField
                             label="Email address"
                             value={email}
@@ -184,47 +184,27 @@ export default function RegisterScreen() {
     );
 }
 
-function BrandContent({
-    logoSize, logoEmoji, titleSize, isSmall,
-}: {
-    logoSize: number;
-    logoEmoji: number;
-    titleSize: number;
-    isSmall: boolean;
-}) {
-    return (
-        <>
-            <View style={[styles.logoBadge, { width: logoSize, height: logoSize, borderRadius: logoSize * 0.28 }]}>
-                <Text style={{ fontSize: logoEmoji }}>📦</Text>
-            </View>
-            <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
-            {!isSmall && (
-                <Text style={styles.brandTagline}>Set up your shop today</Text>
-            )}
-        </>
-    );
-}
-
 const styles = StyleSheet.create({
     root: {
         flex: 1,
         backgroundColor: BRAND_BLUE,
     },
     scroll: {
-        flexGrow: 1,
+        flex: 1,
+        backgroundColor: BRAND_BLUE,
     },
 
-    // ── Brand panel ──
+    // ── Brand panel (pixel height) ──
     brandPanel: {
         backgroundColor: BRAND_BLUE,
         alignItems: 'center',
-        paddingHorizontal: Spacing.xl,
+        justifyContent: 'center',
     },
     logoBadge: {
         backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: Spacing.md,
+        marginBottom: 8,
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.25)',
     },
@@ -232,22 +212,23 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.extrabold,
         color: '#FFFFFF',
         letterSpacing: -0.5,
-        marginBottom: 4,
+        marginBottom: 2,
     },
     brandTagline: {
         fontSize: FontSize.sm,
-        color: 'rgba(255,255,255,0.7)',
+        color: 'rgba(255,255,255,0.72)',
         letterSpacing: 0.3,
     },
 
     // ── Form card ──
-    cardOuter: {
-        flex: 1,
+    card: {
         backgroundColor: Colors.background,
-        marginTop: -16,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
         paddingHorizontal: Spacing.xl,
         paddingTop: Spacing.xl,
         paddingBottom: 40,
+        marginTop: -16,
     },
     cardInner: {},
     cardTitle: {

@@ -28,17 +28,14 @@ export default function LoginScreen() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState<string | null>(null);
 
-    // ── Responsive values ───────────────────────────────────────────────────
-    const isSmall    = height < 680;          // e.g. iPhone SE, short Android
-    const isTablet   = width  >= 600;         // tablets, landscape phones, web
-    const isLarge    = height > 900;          // large phones / iPads in portrait
-
-    const heroV      = isSmall ? 32 : isLarge ? 72 : 52;   // vertical padding in blue panel
-    const logoSize   = isSmall ? 60 : 76;
-    const logoEmoji  = isSmall ? 32 : 40;
-    const titleSize  = isSmall ? 22 : 28;
-    const cardRadius = isTablet ? 32 : 28;
-    const formWidth  = isTablet ? Math.min(width * 0.72, 480) : '100%' as const;
+    // ── Responsive breakpoints ──────────────────────────────────────────────
+    const isTablet      = width >= 600;
+    const heroHeight    = height * 0.32;          // brand panel = 32% of screen
+    const cardMinHeight = height * 0.68;          // card fills remaining 68%
+    const formMaxWidth  = isTablet ? Math.min(width * 0.72, 480) : undefined;
+    const logoSize      = Math.min(heroHeight * 0.38, 80);   // scales with panel
+    const logoRadius    = logoSize * 0.28;
+    const titleSize     = Math.min(heroHeight * 0.16, 28);
 
     const handleLogin = async () => {
         setError(null);
@@ -54,45 +51,35 @@ export default function LoginScreen() {
         <KeyboardAvoidingView
             style={styles.root}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
             <ScrollView
-                contentContainerStyle={styles.scroll}
+                style={styles.scroll}
+                contentContainerStyle={{ minHeight: height }}
                 keyboardShouldPersistTaps="handled"
                 showsVerticalScrollIndicator={false}
             >
                 {/* ── Brand panel ─────────────────────────────────────── */}
-                <View style={[styles.brandPanel, { paddingVertical: heroV }]}>
-                    {isTablet ? (
-                        // On tablet/web: center the inner content with a max width
-                        <View style={{ width: formWidth, alignItems: 'center' }}>
-                            <BrandContent
-                                logoSize={logoSize}
-                                logoEmoji={logoEmoji}
-                                titleSize={titleSize}
-                                isSmall={isSmall}
-                            />
-                        </View>
-                    ) : (
-                        <BrandContent
-                            logoSize={logoSize}
-                            logoEmoji={logoEmoji}
-                            titleSize={titleSize}
-                            isSmall={isSmall}
-                        />
+                <View style={[styles.brandPanel, { height: heroHeight }]}>
+                    <View style={[
+                        styles.logoBadge,
+                        { width: logoSize, height: logoSize, borderRadius: logoRadius },
+                    ]}>
+                        <Text style={{ fontSize: logoSize * 0.5 }}>📦</Text>
+                    </View>
+                    <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
+                    {heroHeight > 160 && (
+                        <Text style={styles.brandTagline}>Inventory made simple</Text>
                     )}
                 </View>
 
                 {/* ── Form card ───────────────────────────────────────── */}
-                <View style={[styles.cardOuter, { borderTopLeftRadius: cardRadius, borderTopRightRadius: cardRadius }]}>
-                    {/* Centre content on wide screens */}
-                    <View style={[styles.cardInner, { width: formWidth, alignSelf: 'center' }]}>
-                        <Text style={[styles.cardTitle, isSmall && { fontSize: FontSize.lg }]}>
-                            Welcome back 👋
-                        </Text>
+                <View style={[styles.card, { minHeight: cardMinHeight }]}>
+                    {/* Centre on tablets / wide screens */}
+                    <View style={[styles.cardInner, formMaxWidth ? { maxWidth: formMaxWidth, alignSelf: 'center', width: '100%' } : undefined]}>
+                        <Text style={styles.cardTitle}>Welcome back 👋</Text>
                         <Text style={styles.cardSubtitle}>Sign in to manage your shop</Text>
 
-                        <View style={{ height: isSmall ? Spacing.md : Spacing.lg }} />
+                        <View style={{ height: Spacing.lg }} />
 
                         <InputField
                             label="Email address"
@@ -149,48 +136,28 @@ export default function LoginScreen() {
     );
 }
 
-// ── Extracted brand content so it can be wrapped for tablet ──────────────────
-function BrandContent({
-    logoSize, logoEmoji, titleSize, isSmall,
-}: {
-    logoSize: number;
-    logoEmoji: number;
-    titleSize: number;
-    isSmall: boolean;
-}) {
-    return (
-        <>
-            <View style={[styles.logoBadge, { width: logoSize, height: logoSize, borderRadius: logoSize * 0.28 }]}>
-                <Text style={{ fontSize: logoEmoji }}>📦</Text>
-            </View>
-            <Text style={[styles.brandName, { fontSize: titleSize }]}>In-Stocker</Text>
-            {!isSmall && (
-                <Text style={styles.brandTagline}>Inventory made simple</Text>
-            )}
-        </>
-    );
-}
-
 const styles = StyleSheet.create({
     root: {
         flex: 1,
         backgroundColor: BRAND_BLUE,
     },
     scroll: {
-        flexGrow: 1,
+        flex: 1,
+        backgroundColor: BRAND_BLUE,
     },
 
-    // ── Brand panel ──
+    // ── Brand panel (fixed pixel height) ──
     brandPanel: {
         backgroundColor: BRAND_BLUE,
         alignItems: 'center',
-        paddingHorizontal: Spacing.xl,
+        justifyContent: 'center',
+        // height set dynamically
     },
     logoBadge: {
         backgroundColor: 'rgba(255,255,255,0.15)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.sm,
         borderWidth: 1.5,
         borderColor: 'rgba(255,255,255,0.25)',
     },
@@ -198,25 +165,26 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.extrabold,
         color: '#FFFFFF',
         letterSpacing: -0.5,
-        marginBottom: 4,
+        marginBottom: 2,
     },
     brandTagline: {
         fontSize: FontSize.sm,
-        color: 'rgba(255,255,255,0.7)',
+        color: 'rgba(255,255,255,0.72)',
         letterSpacing: 0.3,
     },
 
-    // ── Form card ──
-    cardOuter: {
-        flex: 1,
+    // ── Form card (white, rounded top) ──
+    card: {
         backgroundColor: Colors.background,
-        marginTop: -16,
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
         paddingHorizontal: Spacing.xl,
         paddingTop: Spacing.xl,
         paddingBottom: 40,
+        marginTop: -16,
     },
     cardInner: {
-        // width and alignSelf set dynamically above
+        // maxWidth / alignSelf set dynamically for tablet
     },
     cardTitle: {
         fontSize: FontSize.xl,
