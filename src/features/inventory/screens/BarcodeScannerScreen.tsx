@@ -5,8 +5,8 @@ import {
     StyleSheet,
     TouchableOpacity,
     Vibration,
-    Alert,
     Platform,
+    TextInput,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -23,6 +23,7 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
     const { returnTo } = route.params;
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
+    const [manualSku, setManualSku] = useState('');
 
     // Automatically request permission when the screen mounts
     useEffect(() => {
@@ -34,9 +35,18 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
     const handleBarcodeScan = ({ data }: { data: string }) => {
         if (scanned) return;
         setScanned(true);
-        Vibration.vibrate(100);
+        if (Platform.OS !== 'web') {
+            Vibration.vibrate(100);
+        }
         // Navigate back to the origin screen with the scanned value
         navigation.navigate(returnTo, { scannedSku: data });
+    };
+
+    const handleManualSubmit = () => {
+        if (manualSku.trim()) {
+            setScanned(true);
+            navigation.navigate(returnTo, { scannedSku: manualSku.trim() });
+        }
     };
 
     // ── Permission denied ──────────────────────────────────────────────────
@@ -75,7 +85,7 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
             <CameraView
                 style={StyleSheet.absoluteFillObject}
                 facing="back"
-                onBarcodeScanned={scanned ? undefined : handleBarcodeScan}
+                onBarcodeScanned={handleBarcodeScan}
                 barcodeScannerSettings={{
                     barcodeTypes: [
                         'qr', 'ean13', 'ean8', 'code128', 'code39',
@@ -112,7 +122,7 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
                     <View style={styles.darken} />
                 </View>
 
-                {/* Bottom hint */}
+                {/* Bottom hint & Web Fallback */}
                 <View style={styles.bottomBar}>
                     {scanned ? (
                         <>
@@ -125,9 +135,36 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
                             </TouchableOpacity>
                         </>
                     ) : (
-                        <Text style={styles.hint}>
-                            Point the camera at a barcode or QR code
-                        </Text>
+                        <>
+                            <Text style={styles.hint}>
+                                Point the camera at a barcode or QR code
+                            </Text>
+
+                            {/* Fallback for Web where CameraView barcode scanning is limited */}
+                            {Platform.OS === 'web' && (
+                                <View style={styles.webFallbackContainer}>
+                                    <Text style={styles.webFallbackHint}>
+                                        Note: Web barcode scanning is limited. Enter manually if it fails to scan.
+                                    </Text>
+                                    <View style={styles.manualInputRow}>
+                                        <TextInput
+                                            style={styles.manualInput}
+                                            placeholder="Enter SKU manually..."
+                                            placeholderTextColor="#ccc"
+                                            value={manualSku}
+                                            onChangeText={setManualSku}
+                                            onSubmitEditing={handleManualSubmit}
+                                        />
+                                        <TouchableOpacity
+                                            style={styles.manualSubmitBtn}
+                                            onPress={handleManualSubmit}
+                                        >
+                                            <Text style={styles.manualSubmitText}>Go</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                </View>
+                            )}
+                        </>
                     )}
                 </View>
             </View>
@@ -278,4 +315,42 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
     },
     rescanBtnText: { color: '#fff', fontSize: FontSize.md, fontWeight: FontWeight.medium },
+
+    // Web Fallback
+    webFallbackContainer: {
+        marginTop: Spacing.lg,
+        alignItems: 'center',
+        width: '100%',
+        maxWidth: 300,
+    },
+    webFallbackHint: {
+        color: '#ffcc00',
+        fontSize: FontSize.xs,
+        textAlign: 'center',
+        marginBottom: Spacing.sm,
+    },
+    manualInputRow: {
+        flexDirection: 'row',
+        width: '100%',
+        gap: Spacing.sm,
+    },
+    manualInput: {
+        flex: 1,
+        backgroundColor: '#333',
+        color: '#fff',
+        borderRadius: BorderRadius.md,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.sm,
+        fontSize: FontSize.sm,
+    },
+    manualSubmitBtn: {
+        backgroundColor: Colors.primary,
+        borderRadius: BorderRadius.md,
+        paddingHorizontal: Spacing.md,
+        justifyContent: 'center',
+    },
+    manualSubmitText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
 });
