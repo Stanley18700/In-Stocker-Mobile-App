@@ -3,6 +3,8 @@
 // Import these wherever you need typed navigation props.
 // ---------------------------------------------------------------------------
 
+import type { NavigatorScreenParams } from '@react-navigation/native';
+
 // Root
 export type RootStackParamList = {
     Auth: undefined;
@@ -18,10 +20,10 @@ export type AuthStackParamList = {
 // Main bottom tabs
 export type MainTabParamList = {
     Home: undefined;
-    Inventory: undefined;
-    Sales: undefined;
+    Inventory: NavigatorScreenParams<InventoryStackParamList> | undefined;
+    Sales: NavigatorScreenParams<SalesStackParamList> | undefined;
     Alerts: undefined;
-    Settings: undefined;
+    Settings: NavigatorScreenParams<SettingsStackParamList> | undefined;
 };
 
 // Inventory stack

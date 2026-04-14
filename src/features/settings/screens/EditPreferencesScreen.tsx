@@ -95,7 +95,9 @@ export default function EditPreferencesScreen({ navigation }: Props) {
             {/* Validation error modal */}
             <AppModal
                 visible={errorModal}
-                icon="⚠️"
+                iconName="alert-circle-outline"
+                iconColor={Colors.warning}
+                iconBg={Colors.warningLight}
                 title="Invalid Value"
                 message={errorMsg}
                 confirmLabel="OK"

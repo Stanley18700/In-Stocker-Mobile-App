@@ -25,11 +25,16 @@ import {
     StyleSheet,
 } from 'react-native';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow } from '../../core/theme';
+import { Ionicons } from '@expo/vector-icons';
 
 interface AppModalProps {
     visible: boolean;
     /** Emoji or short word shown in a circle at the top */
     icon?: string;
+    /** Vector icon shown in a circle at the top (preferred) */
+    iconName?: React.ComponentProps<typeof Ionicons>['name'];
+    iconColor?: string;
+    iconBg?: string;
     title: string;
     message?: string;
     /** Primary action button (right-side / top) */
@@ -44,6 +49,9 @@ interface AppModalProps {
 export default function AppModal({
     visible,
     icon,
+    iconName,
+    iconColor,
+    iconBg,
     title,
     message,
     confirmLabel = 'Confirm',
@@ -54,6 +62,11 @@ export default function AppModal({
 }: AppModalProps) {
     const confirmStyle =
         confirmVariant === 'danger' ? styles.btnDanger : styles.btnPrimary;
+
+    const resolvedIconBg =
+        iconBg ?? (confirmVariant === 'danger' ? Colors.dangerLight : Colors.primaryLight);
+    const resolvedIconColor =
+        iconColor ?? (confirmVariant === 'danger' ? Colors.danger : Colors.primary);
 
     return (
         <Modal
@@ -66,8 +79,12 @@ export default function AppModal({
             <View style={styles.overlay}>
                 <View style={styles.card}>
                     {/* Icon badge */}
-                    {icon ? (
-                        <View style={styles.iconBadge}>
+                    {iconName ? (
+                        <View style={[styles.iconBadge, { backgroundColor: resolvedIconBg }]}>
+                            <Ionicons name={iconName} size={30} color={resolvedIconColor} />
+                        </View>
+                    ) : icon ? (
+                        <View style={[styles.iconBadge, { backgroundColor: resolvedIconBg }]}>
                             <Text style={styles.iconText}>{icon}</Text>
                         </View>
                     ) : null}

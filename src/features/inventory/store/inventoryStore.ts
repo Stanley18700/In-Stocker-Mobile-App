@@ -26,6 +26,8 @@ export const useInventoryStore = create<InventoryState>((set) => ({
     updateProduct: (product) =>
         set((state) => ({
             products: state.products.map((p) => (p.id === product.id ? product : p)),
+            selectedProduct:
+                state.selectedProduct?.id === product.id ? product : state.selectedProduct,
         })),
     deleteProduct: (id) =>
         set((state) => ({

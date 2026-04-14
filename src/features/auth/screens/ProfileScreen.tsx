@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { StackNavigationProp } from '@react-navigation/stack';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../../core/theme';
 import { formatDate } from '../../../shared/utils/formatters';
@@ -23,7 +24,9 @@ export default function ProfileScreen({ navigation }: Props) {
     return (
         <ScrollView style={styles.container} contentContainerStyle={styles.inner}>
             <View style={styles.avatarContainer}>
-                <Text style={styles.avatar}>🏪</Text>
+                <View style={styles.avatarIconWrap}>
+                    <Ionicons name="storefront-outline" size={34} color={Colors.primary} />
+                </View>
                 <Text style={styles.shopName}>{user?.shopName ?? '—'}</Text>
                 <Text style={styles.ownerName}>{user?.ownerName ?? '—'}</Text>
             </View>
@@ -44,7 +47,10 @@ export default function ProfileScreen({ navigation }: Props) {
                 style={styles.editBtn}
                 onPress={() => navigation.navigate('EditProfile')}
             >
-                <Text style={styles.editBtnText}>✏️  Edit Profile</Text>
+                <View style={styles.editBtnContent}>
+                    <Ionicons name="create-outline" size={18} color={Colors.white} />
+                    <Text style={styles.editBtnText}>Edit Profile</Text>
+                </View>
             </TouchableOpacity>
         </ScrollView>
     );
@@ -57,7 +63,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: Spacing.lg,
     },
-    avatar: { fontSize: 64, marginBottom: Spacing.sm },
+    avatarIconWrap: {
+        width: 72,
+        height: 72,
+        borderRadius: 36,
+        backgroundColor: Colors.primaryLight,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Spacing.sm,
+    },
     shopName: {
         fontSize: FontSize.xl,
         fontWeight: FontWeight.bold,
@@ -89,9 +105,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: Spacing.lg,
     },
+    editBtnContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     editBtnText: {
         color: Colors.white,
         fontSize: FontSize.md,
         fontWeight: FontWeight.bold,
+        marginLeft: Spacing.sm,
     },
 });

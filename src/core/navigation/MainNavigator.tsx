@@ -3,6 +3,7 @@ import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MainTabParamList } from './types';
 import { Colors } from '../theme';
+import { Ionicons } from '@expo/vector-icons';
 
 // Stacks & Screens
 import HomeScreen from '../../features/home/screens/HomeScreen';
@@ -14,14 +15,22 @@ import { useAlertsStore } from '../../features/alerts/store/alertsStore';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-// Tab icon map
-const TAB_ICONS: Record<keyof MainTabParamList, string> = {
-    Home: '🏠',
-    Inventory: '📦',
-    Sales: '🛒',
-    Alerts: '🔔',
-    Settings: '⚙️',
-};
+function getTabIcon(routeName: keyof MainTabParamList, focused: boolean): keyof typeof Ionicons.glyphMap {
+    switch (routeName) {
+        case 'Home':
+            return focused ? 'home' : 'home-outline';
+        case 'Inventory':
+            return focused ? 'cube' : 'cube-outline';
+        case 'Sales':
+            return focused ? 'cart' : 'cart-outline';
+        case 'Alerts':
+            return focused ? 'notifications' : 'notifications-outline';
+        case 'Settings':
+            return focused ? 'settings' : 'settings-outline';
+        default:
+            return focused ? 'ellipse' : 'ellipse-outline';
+    }
+}
 
 export default function MainNavigator() {
     const alertCount = useAlertsStore((s) => s.lowStockProducts.length);
@@ -29,10 +38,12 @@ export default function MainNavigator() {
     return (
         <Tab.Navigator
             screenOptions={({ route }) => ({
-                tabBarIcon: ({ color }) => (
-                    <Text style={{ fontSize: 20, color }}>
-                        {TAB_ICONS[route.name]}
-                    </Text>
+                tabBarIcon: ({ color, size, focused }) => (
+                    <Ionicons
+                        name={getTabIcon(route.name, focused)}
+                        size={size ?? 22}
+                        color={color}
+                    />
                 ),
                 tabBarActiveTintColor: Colors.primary,
                 tabBarInactiveTintColor: Colors.textMuted,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useInventory } from '../hooks/useInventory';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency } from '../../../shared/utils/formatters';
@@ -55,7 +56,10 @@ export default function ProductDetailScreen({ navigation }: Props) {
 
             {isLow && (
                 <View style={styles.alertBanner}>
-                    <Text style={styles.alertText}>⚠️ Low stock! Reorder soon.</Text>
+                    <View style={styles.alertRow}>
+                        <Ionicons name="warning-outline" size={16} color={Colors.warning} />
+                        <Text style={styles.alertText}>Low stock! Reorder soon.</Text>
+                    </View>
                 </View>
             )}
 
@@ -72,7 +76,7 @@ export default function ProductDetailScreen({ navigation }: Props) {
 
             <AppModal
                 visible={showDeleteModal}
-                icon="🗑️"
+                iconName="trash-outline"
                 title="Delete Product"
                 message={`Are you sure you want to delete "${selectedProduct.name}"? This cannot be undone.`}
                 confirmLabel="Delete"
@@ -129,6 +133,7 @@ const styles = StyleSheet.create({
         padding: Spacing.md,
         marginBottom: Spacing.md,
     },
+    alertRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
     alertText: { color: Colors.warning, fontWeight: '600', fontSize: FontSize.sm },
     editBtn: {
         backgroundColor: Colors.primaryLight,

@@ -10,6 +10,7 @@ import {
     Platform,
     TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useInventory } from '../hooks/useInventory';
 import {
     Colors,
@@ -107,8 +108,10 @@ export default function InventoryListScreen({ navigation }: Props) {
             <TouchableOpacity
                 style={styles.fab}
                 onPress={() => navigation.navigate('AddProduct')}
+                accessibilityRole="button"
+                accessibilityLabel="Add product"
             >
-                <Text style={styles.fabText}>+</Text>
+                <Ionicons name="add" size={30} color={Colors.white} />
             </TouchableOpacity>
         </View>
     );
@@ -182,6 +185,5 @@ const styles = StyleSheet.create({
             default: {},
         }),
     },
-    fabText: { color: Colors.white, fontSize: 28, fontWeight: 'normal', lineHeight: 32 },
 });
 

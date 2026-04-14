@@ -170,7 +170,9 @@ export default function AddProductScreen({ navigation, route }: Props) {
             {/* Validation / Save Error Modal */}
             <AppModal
                 visible={errorModal}
-                icon="⚠️"
+                iconName="alert-circle-outline"
+                iconColor={Colors.warning}
+                iconBg={Colors.warningLight}
                 title="Cannot Save"
                 message={errorMsg}
                 confirmLabel="OK"

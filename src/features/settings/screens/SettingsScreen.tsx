@@ -7,13 +7,14 @@ import { SettingsStackParamList } from '../../../core/navigation/types';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { APP_CONFIG } from '../../../constants/config';
 import AppModal from '../../../shared/components/AppModal';
+import { Ionicons } from '@expo/vector-icons';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'SettingsList'>;
 };
 
 interface SettingsRow {
-    icon: string;
+    iconName: React.ComponentProps<typeof Ionicons>['name'];
     label: string;
     value?: string;
     onPress: () => void;
@@ -26,19 +27,19 @@ export default function SettingsScreen({ navigation }: Props) {
 
     const rows: SettingsRow[] = [
         {
-            icon: '👤',
+            iconName: 'person-circle-outline',
             label: 'My Profile',
             value: user?.shopName,
             onPress: () => navigation.navigate('Profile'),
         },
         {
-            icon: '🔔',
+            iconName: 'notifications-outline',
             label: 'Low Stock Threshold',
             value: `${threshold} units`,
             onPress: () => navigation.navigate('EditPreferences'),
         },
         {
-            icon: '💱',
+            iconName: 'cash-outline',
             label: 'Currency',
             value: currency,
             onPress: () => navigation.navigate('EditPreferences'),
@@ -49,7 +50,9 @@ export default function SettingsScreen({ navigation }: Props) {
         <ScrollView style={styles.container} contentContainerStyle={styles.inner}>
             {/* Account card */}
             <View style={styles.accountCard}>
-                <Text style={styles.avatar}>🏪</Text>
+                <View style={styles.avatar}>
+                    <Ionicons name="storefront-outline" size={36} color={Colors.primary} />
+                </View>
                 <View style={styles.accountInfo}>
                     <Text style={styles.shopName}>{user?.shopName ?? '—'}</Text>
                     <Text style={styles.ownerName}>{user?.ownerName ?? '—'}</Text>
@@ -67,7 +70,7 @@ export default function SettingsScreen({ navigation }: Props) {
                         onPress={row.onPress}
                         activeOpacity={0.7}
                     >
-                        <Text style={styles.rowIcon}>{row.icon}</Text>
+                        <Ionicons name={row.iconName} size={20} color={Colors.textSecondary} style={styles.rowIcon} />
                         <Text style={styles.rowLabel}>{row.label}</Text>
                         <View style={styles.rowRight}>
                             {row.value ? (
@@ -89,7 +92,9 @@ export default function SettingsScreen({ navigation }: Props) {
             {/* Sign-out confirmation modal */}
             <AppModal
                 visible={showSignOutModal}
-                icon="🚪"
+                iconName="log-out-outline"
+                iconColor={Colors.danger}
+                iconBg={Colors.dangerLight}
                 title="Sign Out"
                 message="Are you sure you want to sign out?"
                 confirmLabel="Sign Out"
@@ -115,7 +120,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.border,
     },
-    avatar: { fontSize: 44, marginRight: Spacing.md },
+    avatar: { marginRight: Spacing.md, alignItems: 'center', justifyContent: 'center', width: 44, height: 44 },
     accountInfo: { flex: 1 },
     shopName: {
         fontSize: FontSize.lg,
@@ -149,7 +154,7 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.md,
     },
     rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-    rowIcon: { fontSize: 20, marginRight: Spacing.md },
+    rowIcon: { marginRight: Spacing.md },
     rowLabel: { flex: 1, fontSize: FontSize.md, color: Colors.textPrimary },
     rowRight: { flexDirection: 'row', alignItems: 'center' },
     rowValue: { fontSize: FontSize.sm, color: Colors.textMuted, marginRight: Spacing.xs },

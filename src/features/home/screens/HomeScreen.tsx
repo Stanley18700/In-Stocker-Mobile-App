@@ -8,6 +8,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 import {
     Colors,
     Spacing,
@@ -37,7 +38,7 @@ function getGreeting(): string {
 // ---------------------------------------------------------------------------
 
 interface StatCardProps {
-    icon: string;
+    iconName: React.ComponentProps<typeof Ionicons>['name'];
     label: string;
     value: string;
     accent?: string;
@@ -45,7 +46,7 @@ interface StatCardProps {
     half?: boolean;
 }
 
-function StatCard({ icon, label, value, accent, bg, half }: StatCardProps) {
+function StatCard({ iconName, label, value, accent, bg, half }: StatCardProps) {
     return (
         <View
             style={[
@@ -55,7 +56,12 @@ function StatCard({ icon, label, value, accent, bg, half }: StatCardProps) {
                 Shadow.sm,
             ]}
         >
-            <Text style={styles.statIcon}>{icon}</Text>
+            <Ionicons
+                name={iconName}
+                size={22}
+                color={accent ?? Colors.textSecondary}
+                style={styles.statIcon}
+            />
             <Text style={[styles.statValue, accent ? { color: accent } : undefined]}>
                 {value}
             </Text>
@@ -69,21 +75,21 @@ function StatCard({ icon, label, value, accent, bg, half }: StatCardProps) {
 // ---------------------------------------------------------------------------
 
 interface QuickActionProps {
-    icon: string;
+    iconName: React.ComponentProps<typeof Ionicons>['name'];
     label: string;
     color: string;
     bg: string;
     onPress: () => void;
 }
 
-function QuickAction({ icon, label, color, bg, onPress }: QuickActionProps) {
+function QuickAction({ iconName, label, color, bg, onPress }: QuickActionProps) {
     return (
         <TouchableOpacity
             style={[styles.quickAction, { backgroundColor: bg }, Shadow.sm]}
             onPress={onPress}
             activeOpacity={0.75}
         >
-            <Text style={styles.quickActionIcon}>{icon}</Text>
+            <Ionicons name={iconName} size={22} color={color} style={styles.quickActionIcon} />
             <Text style={[styles.quickActionLabel, { color }]}>{label}</Text>
         </TouchableOpacity>
     );
@@ -140,12 +146,11 @@ export default function HomeScreen() {
             }
         >
             {/* ── Greeting header ────────────────────────────────────────── */}
-            <View style={styles.header}>
+            <View style={styles.header}
+            >
                 <View style={styles.headerText}>
                     <Text style={styles.greeting}>{getGreeting()},</Text>
-                    <Text style={styles.ownerName}>
-                        {user?.ownerName ?? 'there'}
-                    </Text>
+                    <Text style={styles.ownerName}>{user?.ownerName ?? 'there'}</Text>
                 </View>
                 <View style={styles.shopBadge}>
                     <Text style={styles.shopBadgeText}>{user?.shopName ?? 'Your Shop'}</Text>
@@ -155,13 +160,13 @@ export default function HomeScreen() {
             {/* ── Stat cards (2 × 2 grid) ─────────────────────────────────── */}
             <View style={styles.statsGrid}>
                 <StatCard
-                    icon="📦"
+                    iconName="cube-outline"
                     label="Total Products"
                     value={String(stats.totalProducts)}
                     half
                 />
                 <StatCard
-                    icon="⚠️"
+                    iconName="alert-circle-outline"
                     label="Low Stock"
                     value={String(stats.lowStockCount)}
                     accent={stats.lowStockCount > 0 ? Colors.danger : Colors.secondary}
@@ -169,13 +174,13 @@ export default function HomeScreen() {
                     half
                 />
                 <StatCard
-                    icon="🛒"
+                    iconName="cart-outline"
                     label="Sales Today"
                     value={String(stats.todaySalesCount)}
                     half
                 />
                 <StatCard
-                    icon="💰"
+                    iconName="cash-outline"
                     label="Revenue Today"
                     value={formatCurrency(stats.todayRevenue)}
                     accent={Colors.primary}
@@ -191,14 +196,19 @@ export default function HomeScreen() {
                         {formatCurrency(stats.totalInventoryValue)}
                     </Text>
                 </View>
-                <Text style={styles.inventoryBannerIcon}>🏷️</Text>
+                <Ionicons
+                    name="pricetag-outline"
+                    size={28}
+                    color={Colors.white}
+                    style={{ opacity: 0.9 }}
+                />
             </View>
 
             {/* ── Quick actions ───────────────────────────────────────────── */}
             <Text style={styles.sectionTitle}>Quick Actions</Text>
             <View style={styles.quickActionsRow}>
                 <QuickAction
-                    icon="➕"
+                    iconName="add-circle-outline"
                     label="Add Product"
                     color={Colors.primary}
                     bg={Colors.primaryLight}
@@ -209,7 +219,7 @@ export default function HomeScreen() {
                     }
                 />
                 <QuickAction
-                    icon="🛒"
+                    iconName="receipt-outline"
                     label="Record Sale"
                     color={Colors.secondary}
                     bg={Colors.secondaryLight}
@@ -220,7 +230,7 @@ export default function HomeScreen() {
                     }
                 />
                 <QuickAction
-                    icon="📋"
+                    iconName="clipboard-outline"
                     label="Restock Plan"
                     color={Colors.primary}
                     bg={Colors.primaryLight}
@@ -231,17 +241,12 @@ export default function HomeScreen() {
                     }
                 />
                 <QuickAction
-                    icon="🔔"
+                    iconName="notifications-outline"
                     label="Alerts"
-                    color={
-                        stats.lowStockCount > 0 ? Colors.danger : Colors.textSecondary
-                    }
-                    bg={
-                        stats.lowStockCount > 0 ? Colors.dangerLight : Colors.surfaceAlt ?? '#F1F5F9'
-                    }
+                    color={stats.lowStockCount > 0 ? Colors.danger : Colors.textSecondary}
+                    bg={stats.lowStockCount > 0 ? Colors.dangerLight : Colors.surfaceAlt}
                     onPress={() => navigation.navigate('Alerts')}
                 />
-
             </View>
 
             {/* ── Recent sales ────────────────────────────────────────────── */}
@@ -256,7 +261,7 @@ export default function HomeScreen() {
 
             {recentSales.length === 0 ? (
                 <View style={[styles.emptyCard, Shadow.sm]}>
-                    <Text style={styles.emptyIcon}>🛒</Text>
+                    <Ionicons name="cart-outline" size={34} color={Colors.textMuted} style={styles.emptyIcon} />
                     <Text style={styles.emptyText}>No sales recorded yet.</Text>
                     <Text style={styles.emptySubtext}>
                         Tap "Record Sale" to add your first transaction.
@@ -267,9 +272,7 @@ export default function HomeScreen() {
                     {recentSales.map((sale, i) => (
                         <View key={sale.id}>
                             <RecentSaleRow sale={sale} />
-                            {i < recentSales.length - 1 && (
-                                <View style={styles.divider} />
-                            )}
+                            {i < recentSales.length - 1 && <View style={styles.divider} />}
                         </View>
                     ))}
                 </View>
@@ -341,7 +344,7 @@ const styles = StyleSheet.create({
         flexBasis: '45%',
         flexGrow: 1,
     },
-    statIcon: { fontSize: 24, marginBottom: Spacing.xs },
+    statIcon: { marginBottom: Spacing.xs },
     statValue: {
         fontSize: FontSize.xl,
         fontWeight: FontWeight.extrabold,
@@ -366,7 +369,8 @@ const styles = StyleSheet.create({
     },
     inventoryBannerLabel: {
         fontSize: FontSize.sm,
-        color: 'rgba(255,255,255,0.8)',
+        color: Colors.white,
+        opacity: 0.8,
         marginBottom: 4,
         fontWeight: FontWeight.medium,
     },
@@ -375,7 +379,6 @@ const styles = StyleSheet.create({
         fontWeight: FontWeight.extrabold,
         color: Colors.white,
     },
-    inventoryBannerIcon: { fontSize: 36 },
 
     // Section titles
     sectionTitle: {
@@ -410,7 +413,7 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.md,
         margin: Spacing.xs,
     },
-    quickActionIcon: { fontSize: 24, marginBottom: Spacing.xs },
+    quickActionIcon: { marginBottom: Spacing.xs },
     quickActionLabel: {
         fontSize: FontSize.xs,
         fontWeight: FontWeight.bold,
@@ -463,7 +466,7 @@ const styles = StyleSheet.create({
         padding: Spacing.xl,
         alignItems: 'center',
     },
-    emptyIcon: { fontSize: 40, marginBottom: Spacing.sm },
+    emptyIcon: { marginBottom: Spacing.sm },
     emptyText: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.semibold,
@@ -476,4 +479,3 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
-

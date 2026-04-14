@@ -1,11 +1,18 @@
 import React, { useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
+import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
 import { useAlerts } from '../hooks/useAlerts';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { Product } from '../../../shared/types/product';
+import { MainTabParamList } from '../../../core/navigation/types';
+import { useInventory } from '../../inventory/hooks/useInventory';
 
 export default function AlertsScreen() {
     const { lowStockProducts, isLoading, fetchLowStockAlerts } = useAlerts();
+    const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'Alerts'>>();
+    const { setSelectedProduct } = useInventory();
 
     useEffect(() => {
         fetchLowStockAlerts();
@@ -14,7 +21,20 @@ export default function AlertsScreen() {
     const renderItem = ({ item }: { item: Product }) => {
         const urgency = item.quantity === 0 ? 'out' : item.quantity <= Math.floor(item.lowStockThreshold / 2) ? 'critical' : 'low';
         return (
-            <View style={[styles.card, urgency === 'out' && styles.cardOut, urgency === 'critical' && styles.cardCritical]}>
+            <TouchableOpacity
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                style={[styles.card, urgency === 'out' && styles.cardOut, urgency === 'critical' && styles.cardCritical]}
+                onPress={() => {
+                    // EditProductScreen currently relies on selectedProduct.
+                    // Set it here so the edit form opens instantly.
+                    setSelectedProduct(item);
+                    navigation.navigate('Inventory', {
+                        screen: 'EditProduct',
+                        params: { productId: item.id },
+                    });
+                }}
+            >
                 <View style={styles.cardLeft}>
                     <Text style={styles.productName}>{item.name}</Text>
                     <Text style={styles.sku}>SKU: {item.sku}  ·  Threshold: {item.lowStockThreshold} units</Text>
@@ -24,14 +44,17 @@ export default function AlertsScreen() {
                         {item.quantity === 0 ? 'OUT' : `${item.quantity} left`}
                     </Text>
                 </View>
-            </View>
+            </TouchableOpacity>
         );
     };
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>⚠️ Low Stock Alerts</Text>
+                <View style={styles.headerTitleRow}>
+                    <Ionicons name="warning-outline" size={18} color={Colors.warning} />
+                    <Text style={styles.headerTitle}>Low Stock Alerts</Text>
+                </View>
                 <Text style={styles.headerSub}>
                     {lowStockProducts.length === 0
                         ? 'All products are within safe levels'
@@ -46,7 +69,12 @@ export default function AlertsScreen() {
                 refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchLowStockAlerts} tintColor={Colors.warning} />}
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyIcon}>✅</Text>
+                        <Ionicons
+                            name="checkmark-circle-outline"
+                            size={44}
+                            color={Colors.secondary}
+                            style={styles.emptyIcon}
+                        />
                         <Text style={styles.empty}>All products are well-stocked!</Text>
                         <Text style={styles.emptySub}>Pull down to refresh</Text>
                     </View>
@@ -64,6 +92,7 @@ const styles = StyleSheet.create({
         borderBottomWidth: 1,
         borderBottomColor: Colors.border,
     },
+    headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
     headerTitle: { fontSize: FontSize.lg, fontWeight: 'bold', color: Colors.warning },
     headerSub: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
     list: { padding: Spacing.md },
@@ -96,7 +125,7 @@ const styles = StyleSheet.create({
     badgeTextCritical: { color: Colors.danger },
     badgeTextOut: { color: Colors.white },
     emptyContainer: { alignItems: 'center', marginTop: 60 },
-    emptyIcon: { fontSize: 48, marginBottom: Spacing.md },
+    emptyIcon: { marginBottom: Spacing.md },
     empty: { color: Colors.textMuted, fontSize: FontSize.md },
     emptySub: { color: Colors.textMuted, fontSize: FontSize.sm, marginTop: 4 },
 });

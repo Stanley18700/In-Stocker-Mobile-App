@@ -9,6 +9,7 @@ import {
     TextInput,
 } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { Ionicons } from '@expo/vector-icons';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { InventoryStackParamList } from '../../../core/navigation/types';
@@ -61,7 +62,7 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
     if (!permission.granted) {
         return (
             <View style={styles.center}>
-                <Text style={styles.icon}>📷</Text>
+                <Ionicons name="camera-outline" size={56} color={Colors.textSecondary} style={styles.icon} />
                 <Text style={styles.message}>Camera access is required to scan barcodes.</Text>
                 {permission.canAskAgain ? (
                     <TouchableOpacity style={styles.grantBtn} onPress={requestPermission}>
@@ -99,7 +100,7 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
                 {/* Top bar */}
                 <View style={styles.topBar}>
                     <TouchableOpacity onPress={() => navigation.goBack()} style={styles.closeBtn}>
-                        <Text style={styles.closeBtnText}>✕</Text>
+                        <Ionicons name="close" size={24} color={Colors.white} />
                     </TouchableOpacity>
                     <Text style={styles.topTitle}>Scan Barcode</Text>
                     <View style={{ width: 40 }} />
@@ -126,7 +127,10 @@ export default function BarcodeScannerScreen({ navigation, route }: Props) {
                 <View style={styles.bottomBar}>
                     {scanned ? (
                         <>
-                            <Text style={styles.scannedText}>✓ Barcode scanned!</Text>
+                            <View style={styles.scannedRow}>
+                                <Ionicons name="checkmark-circle" size={18} color={Colors.success} />
+                                <Text style={styles.scannedText}>Barcode scanned!</Text>
+                            </View>
                             <TouchableOpacity
                                 style={styles.rescanBtn}
                                 onPress={() => setScanned(false)}
@@ -185,7 +189,7 @@ const styles = StyleSheet.create({
         padding: Spacing.xl,
         backgroundColor: Colors.background,
     },
-    icon: { fontSize: 64, marginBottom: Spacing.md },
+    icon: { marginBottom: Spacing.md },
     message: {
         fontSize: FontSize.md,
         color: Colors.textPrimary,
@@ -238,7 +242,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
     },
-    closeBtnText: { color: '#fff', fontSize: 20, fontWeight: FontWeight.bold },
     topTitle: { color: '#fff', fontSize: FontSize.lg, fontWeight: FontWeight.bold },
 
     viewfinderArea: {
@@ -300,12 +303,16 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         backgroundColor: 'rgba(0,0,0,0.55)',
         alignItems: 'center',
-        gap: Spacing.md,
+    },
+    scannedRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     scannedText: {
-        color: '#4ADE80',
+        color: Colors.success,
         fontSize: FontSize.md,
         fontWeight: FontWeight.bold,
+        marginLeft: Spacing.xs,
     },
     rescanBtn: {
         borderColor: '#fff',
@@ -313,6 +320,7 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.md,
         paddingVertical: Spacing.sm,
         paddingHorizontal: Spacing.lg,
+        marginTop: Spacing.md,
     },
     rescanBtnText: { color: '#fff', fontSize: FontSize.md, fontWeight: FontWeight.medium },
 
@@ -332,7 +340,6 @@ const styles = StyleSheet.create({
     manualInputRow: {
         flexDirection: 'row',
         width: '100%',
-        gap: Spacing.sm,
     },
     manualInput: {
         flex: 1,
@@ -342,6 +349,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.sm,
         fontSize: FontSize.sm,
+        marginRight: Spacing.sm,
     },
     manualSubmitBtn: {
         backgroundColor: Colors.primary,

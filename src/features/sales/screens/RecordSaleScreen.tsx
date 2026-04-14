@@ -7,6 +7,7 @@ import {
     StyleSheet,
     TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSales } from '../hooks/useSales';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
@@ -69,7 +70,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 <View style={styles.actions}>
                     {inCart && (
                         <TouchableOpacity style={styles.removeBtn} onPress={() => removeFromCart(item.id)}>
-                            <Text style={styles.removeBtnText}>−</Text>
+                            <Ionicons name="remove" size={18} color={Colors.danger} />
                         </TouchableOpacity>
                     )}
                     {inCart && <Text style={styles.qtyText}>{inCart.quantity}</Text>}
@@ -78,7 +79,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
                         onPress={() => addProductToCart(item)}
                         disabled={item.quantity === 0}
                     >
-                        <Text style={styles.addBtnText}>+</Text>
+                        <Ionicons name="add" size={18} color={Colors.white} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -89,7 +90,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
         <View style={styles.container}>
             {/* ── Search bar ─────────────────────────────────────────────── */}
             <View style={styles.searchBar}>
-                <Text style={styles.searchIcon}>🔍</Text>
+                <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search products..."
@@ -100,7 +101,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 />
                 {query.length > 0 && (
                     <TouchableOpacity onPress={() => setQuery('')}>
-                        <Text style={styles.clearBtn}>✕</Text>
+                        <Ionicons name="close" size={16} color={Colors.textMuted} />
                     </TouchableOpacity>
                 )}
             </View>
@@ -137,7 +138,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
             {/* ── Confirm modal ───────────────────────────────────────────── */}
             <AppModal
                 visible={modal === 'confirm'}
-                icon="🛒"
+                iconName="cart-outline"
                 title="Confirm Sale"
                 message={`${cartItemCount} item(s)  ·  ${formatCurrency(cartTotal)}\n\nThis will deduct stock for all items.`}
                 confirmLabel="Confirm Sale"
@@ -149,7 +150,9 @@ export default function RecordSaleScreen({ navigation }: Props) {
             {/* ── Success modal ───────────────────────────────────────────── */}
             <AppModal
                 visible={modal === 'success'}
-                icon="✅"
+                iconName="checkmark-circle-outline"
+                iconColor={Colors.secondary}
+                iconBg={Colors.secondaryLight}
                 title="Sale Recorded!"
                 message="Stock has been updated and the sale has been saved."
                 confirmLabel="Done"
@@ -159,7 +162,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
             {/* ── Error modal ─────────────────────────────────────────────── */}
             <AppModal
                 visible={modal === 'error'}
-                icon="❌"
+                iconName="close-circle-outline"
                 title="Checkout Failed"
                 message={errorMsg}
                 confirmLabel="OK"

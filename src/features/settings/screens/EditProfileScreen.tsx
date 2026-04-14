@@ -112,7 +112,9 @@ export default function EditProfileScreen({ navigation }: Props) {
             {/* Validation error */}
             <AppModal
                 visible={modal === 'validation'}
-                icon="⚠️"
+                iconName="alert-circle-outline"
+                iconColor={Colors.warning}
+                iconBg={Colors.warningLight}
                 title="Required Fields"
                 message={errorMsg}
                 confirmLabel="OK"
@@ -122,7 +124,7 @@ export default function EditProfileScreen({ navigation }: Props) {
             {/* Save error */}
             <AppModal
                 visible={modal === 'error'}
-                icon="❌"
+                iconName="close-circle-outline"
                 title="Save Failed"
                 message={errorMsg}
                 confirmLabel="OK"

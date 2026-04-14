@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../store/authStore';
 import InputField from '../../../shared/components/InputField';
 import PrimaryButton from '../../../shared/components/PrimaryButton';
@@ -52,7 +53,9 @@ export default function LoginScreen() {
                 keyboardShouldPersistTaps="handled"
             >
                 {/* Header */}
-                <Text style={styles.logo}>📦</Text>
+                <View style={styles.logo}>
+                    <Ionicons name="cube" size={56} color={Colors.primary} />
+                </View>
                 <Text style={styles.title}>In-Stocker</Text>
                 <Text style={styles.subtitle}>Sign in to manage your shop</Text>
 
@@ -109,11 +112,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xxl,
     },
-    logo: {
-        fontSize: 56,
-        textAlign: 'center',
-        marginBottom: Spacing.sm,
-    },
+    logo: { alignItems: 'center', marginBottom: Spacing.sm },
     title: {
         fontSize: FontSize.xxxl,
         fontWeight: FontWeight.extrabold,

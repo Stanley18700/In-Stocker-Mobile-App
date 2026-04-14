@@ -133,7 +133,9 @@ export default function EditProductScreen({ navigation }: Props) {
 
             <AppModal
                 visible={errorModal}
-                icon="⚠️"
+                iconName="alert-circle-outline"
+                iconColor={Colors.warning}
+                iconBg={Colors.warningLight}
                 title="Cannot Save"
                 message={errorMsg}
                 confirmLabel="OK"

@@ -12,6 +12,7 @@ import {
     RefreshControl,
     TouchableOpacity,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useBufferStock, BufferRecommendation } from '../hooks/useBufferStock';
 import { useInventory } from '../hooks/useInventory';
 import { useSales } from '../../sales/hooks/useSales';
@@ -88,7 +89,10 @@ function RecommendationCard({ rec, currency }: { rec: BufferRecommendation; curr
 
             {/* Row 3: Days remaining + estimated cost */}
             <View style={styles.cardBottom}>
-                <Text style={[styles.daysText, { color: badgeColor }]}>⏱ {daysText}</Text>
+                <View style={styles.daysRow}>
+                    <Ionicons name="time-outline" size={14} color={badgeColor} />
+                    <Text style={[styles.daysText, { color: badgeColor }]}>{daysText}</Text>
+                </View>
                 {rec.recommendedReorderQty > 0 && (
                     <Text style={styles.costText}>
                         Est. cost: {formatCurrency(rec.product.price * rec.recommendedReorderQty, currency)}
@@ -133,7 +137,13 @@ export default function BufferStockScreen() {
         <View style={styles.container}>
             {/* Header summary banner */}
             <View style={[styles.banner, urgentCount > 0 ? styles.bannerUrgent : styles.bannerOk]}>
-                <Text style={styles.bannerIcon}>{urgentCount > 0 ? '🛒' : '✅'}</Text>
+                <View style={styles.bannerIcon}>
+                    <Ionicons
+                        name={urgentCount > 0 ? 'cart-outline' : 'checkmark-circle-outline'}
+                        size={26}
+                        color={urgentCount > 0 ? Colors.warning : Colors.secondary}
+                    />
+                </View>
                 <View style={styles.bannerText}>
                     <Text style={styles.bannerTitle}>
                         {urgentCount > 0
@@ -162,7 +172,7 @@ export default function BufferStockScreen() {
                 }
                 ListEmptyComponent={
                     <View style={styles.emptyContainer}>
-                        <Text style={styles.emptyIcon}>📦</Text>
+                        <Ionicons name="cube-outline" size={44} color={Colors.textMuted} style={styles.emptyIcon} />
                         <Text style={styles.emptyText}>Add products and record sales</Text>
                         <Text style={styles.emptySub}>Recommendations appear after your first sale</Text>
                     </View>
@@ -170,9 +180,12 @@ export default function BufferStockScreen() {
                 ListHeaderComponent={
                     sorted.length > 0 ? (
                         <View style={styles.legend}>
-                            <Text style={styles.legendText}>
-                                📊 "Buy Now" = average daily sales × 14 days buffer
-                            </Text>
+                            <View style={styles.legendRow}>
+                                <Ionicons name="stats-chart-outline" size={14} color={Colors.primary} />
+                                <Text style={styles.legendText}>
+                                    "Buy Now" = average daily sales × 14 days buffer
+                                </Text>
+                            </View>
                         </View>
                     ) : null
                 }
@@ -198,7 +211,7 @@ const styles = StyleSheet.create({
     },
     bannerUrgent: { backgroundColor: Colors.warningLight },
     bannerOk:     { backgroundColor: Colors.secondaryLight },
-    bannerIcon:   { fontSize: 28 },
+    bannerIcon:   { width: 32, alignItems: 'center', justifyContent: 'center' },
     bannerText:   { flex: 1 },
     bannerTitle: {
         fontSize: FontSize.md,
@@ -218,6 +231,7 @@ const styles = StyleSheet.create({
         padding: Spacing.sm,
         marginBottom: Spacing.sm,
     },
+    legendRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
     legendText: {
         fontSize: FontSize.xs,
         color: Colors.primary,
@@ -295,6 +309,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
     },
+    daysRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
     daysText: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.semibold,
@@ -306,7 +321,7 @@ const styles = StyleSheet.create({
 
     // Empty state
     emptyContainer: { alignItems: 'center', marginTop: 80 },
-    emptyIcon: { fontSize: 48, marginBottom: Spacing.sm },
+    emptyIcon: { marginBottom: Spacing.sm },
     emptyText: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.semibold,

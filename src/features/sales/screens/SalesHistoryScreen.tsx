@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Text, SectionList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useSales } from '../hooks/useSales';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency, formatDate } from '../../../shared/utils/formatters';
@@ -78,7 +79,8 @@ export default function SalesHistoryScreen({ navigation }: Props) {
                 style={styles.reportsBtn}
                 onPress={() => navigation.navigate('Reports')}
             >
-                <Text style={styles.reportsBtnText}>📊  View Reports</Text>
+                <Ionicons name="analytics-outline" size={18} color={Colors.primary} style={styles.reportsBtnIcon} />
+                <Text style={styles.reportsBtnText}>View Reports</Text>
             </TouchableOpacity>
             {isLoading && sales.length === 0 ? (
                 <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
@@ -144,6 +146,9 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         fontWeight: 'bold',
         color: Colors.primary,
+    },
+    reportsBtnIcon: {
+        marginRight: Spacing.xs,
     },
 });
 
