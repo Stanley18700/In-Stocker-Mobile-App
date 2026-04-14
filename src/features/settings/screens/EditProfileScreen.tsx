@@ -12,7 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { SettingsStackParamList } from '../../../core/navigation/types';
 import { useAuthStore } from '../../auth/store/authStore';
 import { authService } from '../../auth/services/authService';
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../../core/theme';
+import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../../core/theme';
 import AppModal from '../../../shared/components/AppModal';
 
 type Props = {
@@ -151,18 +151,24 @@ const styles = StyleSheet.create({
     input: {
         backgroundColor: Colors.surface,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.borderStrong,
         borderRadius: BorderRadius.md,
         paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm + 4,
+        paddingVertical: Spacing.sm,
+        minHeight: 54,
         fontSize: FontSize.md,
         color: Colors.textPrimary,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        includeFontPadding: false,
         marginBottom: Spacing.md,
+        ...Shadow.sm,
     },
     inputReadonly: {
-        backgroundColor: '#F1F5F9',
+        backgroundColor: Colors.surfaceAlt,
         color: Colors.textMuted,
         marginBottom: Spacing.xs,
+        borderColor: Colors.border,
     },
     readonlyHint: {
         fontSize: FontSize.xs,

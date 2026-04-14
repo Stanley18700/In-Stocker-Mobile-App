@@ -4,6 +4,7 @@ import { AuthStackParamList } from './types';
 import LoginScreen from '../../features/auth/screens/LoginScreen';
 import RegisterScreen from '../../features/auth/screens/RegisterScreen';
 import { Colors } from '../theme';
+import BackButton from '../../shared/components/BackButton';
 
 const Stack = createStackNavigator<AuthStackParamList>();
 
@@ -25,7 +26,10 @@ export default function AuthNavigator() {
             <Stack.Screen
                 name="Register"
                 component={RegisterScreen}
-                options={{ title: 'Create Account' }}
+                options={({ navigation }) => ({
+                    title: 'Create Account',
+                    headerLeft: () => <BackButton onPress={() => navigation.goBack()} />,
+                })}
             />
         </Stack.Navigator>
     );

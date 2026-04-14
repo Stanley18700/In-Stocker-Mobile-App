@@ -45,6 +45,19 @@ export default function InputField({
     const [isFocused, setIsFocused] = useState(false);
     const [isHidden, setIsHidden] = useState(secureTextEntry);
 
+    const isEmailLike =
+        rest.keyboardType === 'email-address' ||
+        rest.textContentType === 'emailAddress' ||
+        rest.autoComplete === 'email';
+
+    const defaultAutoCapitalize: TextInputProps['autoCapitalize'] = isEmailLike
+        ? 'none'
+        : secureTextEntry
+            ? 'none'
+            : 'sentences';
+
+    const defaultAutoCorrect = isEmailLike ? false : !secureTextEntry;
+
     return (
         <View style={styles.wrapper}>
             {/* Optional label */}
@@ -66,8 +79,8 @@ export default function InputField({
                     secureTextEntry={isHidden}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    autoCapitalize="none"
-                    autoCorrect={false}
+                    autoCapitalize={rest.autoCapitalize ?? defaultAutoCapitalize}
+                    autoCorrect={rest.autoCorrect ?? defaultAutoCorrect}
                     {...rest}
                 />
 
@@ -101,22 +114,23 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         fontWeight: '500',
         color: Colors.textSecondary,
-        marginBottom: Spacing.sm,
+        marginBottom: Spacing.xs,
     },
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.surface,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: Colors.borderStrong,
         borderRadius: BorderRadius.md,
         paddingHorizontal: Spacing.md,
-        minHeight: 52,
+        paddingVertical: Spacing.xs,
+        minHeight: 54,
         ...Shadow.sm,
     },
     inputFocused: {
         borderColor: Colors.primary,
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.surface,
         ...Shadow.md,
     },
     inputError: {
@@ -127,6 +141,10 @@ const styles = StyleSheet.create({
         fontSize: FontSize.md,
         color: Colors.textPrimary,
         paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.xs,
+        lineHeight: 20,
+        textAlignVertical: 'center',
+        includeFontPadding: false,
     },
     eyeBtn: {
         marginLeft: Spacing.sm,
