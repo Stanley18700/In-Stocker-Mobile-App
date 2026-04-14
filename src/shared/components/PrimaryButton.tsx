@@ -1,12 +1,20 @@
 import React from 'react';
 import {
     ActivityIndicator,
+    Platform,
     StyleSheet,
     Text,
     TouchableOpacity,
     TouchableOpacityProps,
 } from 'react-native';
-import { Colors, Spacing, FontSize, FontWeight, BorderRadius } from '../../core/theme';
+import {
+    Colors,
+    Spacing,
+    FontSize,
+    FontWeight,
+    BorderRadius,
+    Shadow,
+} from '../../core/theme';
 
 // ---------------------------------------------------------------------------
 // Props
@@ -34,7 +42,7 @@ export default function PrimaryButton({
 
     return (
         <TouchableOpacity
-            style={[styles.button, isDisabled && styles.buttonDisabled, style]}
+            style={[styles.button, styles.buttonWeb, isDisabled && styles.buttonDisabled, style]}
             onPress={onPress}
             disabled={isDisabled}
             activeOpacity={0.8}
@@ -62,9 +70,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         minHeight: 50,
+        ...Shadow.sm,
+    },
+    buttonWeb: {
+        ...(Platform.OS === 'web' ? { cursor: 'pointer' as const } : {}),
     },
     buttonDisabled: {
         backgroundColor: Colors.textMuted,
+        shadowOpacity: 0,
+        elevation: 0,
     },
     label: {
         color: Colors.white,

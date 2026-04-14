@@ -2,20 +2,27 @@ import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
-    TextInput,
     TouchableOpacity,
     StyleSheet,
     ScrollView,
-    ActivityIndicator,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
+import {
+    Colors,
+    Spacing,
+    FontSize,
+    BorderRadius,
+    FontWeight,
+    Shadow,
+} from '../../../core/theme';
 import { generateSKU } from '../../../shared/utils/formatters';
 import { APP_CONFIG } from '../../../constants/config';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RouteProp } from '@react-navigation/native';
 import { InventoryStackParamList } from '../../../core/navigation/types';
 import AppModal from '../../../shared/components/AppModal';
+import InputField from '../../../shared/components/InputField';
+import PrimaryButton from '../../../shared/components/PrimaryButton';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'AddProduct'>;
@@ -86,81 +93,79 @@ export default function AddProductScreen({ navigation, route }: Props) {
             contentContainerStyle={styles.inner}
             keyboardShouldPersistTaps="handled"
         >
-            <Text style={styles.label}>Product Name *</Text>
-            <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={setName}
-                placeholder="e.g. Rice 5kg"
-                placeholderTextColor={Colors.textMuted}
-                onBlur={handleAutoSKU}
-            />
-
-            <Text style={styles.label}>SKU *</Text>
-            <View style={styles.skuRow}>
-                <TextInput
-                    style={[styles.input, styles.skuInput]}
-                    value={sku}
-                    onChangeText={setSku}
-                    placeholder="Auto-generated or scan barcode"
-                    placeholderTextColor={Colors.textMuted}
-                />
-                <TouchableOpacity
-                    style={styles.scanBtn}
-                    onPress={() => navigation.navigate('BarcodeScanner', { returnTo: 'AddProduct' })}
-                >
-                    <Text style={styles.scanBtnText}>📷 Scan</Text>
-                </TouchableOpacity>
+            <View style={styles.header}>
+                <Text style={styles.title}>Add Product</Text>
+                <Text style={styles.subtitle}>
+                    Fill in product details to add an item to inventory.
+                </Text>
             </View>
 
-            <Text style={styles.label}>Category</Text>
-            <TextInput
-                style={styles.input}
-                value={category}
-                onChangeText={setCategory}
-                placeholder="e.g. Food, Beverage"
-                placeholderTextColor={Colors.textMuted}
-            />
+            <View style={styles.formCard}>
+                <InputField
+                    label="Product Name *"
+                    value={name}
+                    onChangeText={setName}
+                    placeholder="e.g. Rice 5kg"
+                    onBlur={handleAutoSKU}
+                />
 
-            <Text style={styles.label}>Quantity *</Text>
-            <TextInput
-                style={styles.input}
-                value={quantity}
-                onChangeText={setQuantity}
-                keyboardType="numeric"
-                placeholder="0"
-                placeholderTextColor={Colors.textMuted}
-            />
+                <Text style={styles.label}>SKU *</Text>
+                <View style={styles.skuRow}>
+                    <View style={styles.skuInput}>
+                        <InputField
+                            value={sku}
+                            onChangeText={setSku}
+                            placeholder="Auto-generated or scan barcode"
+                        />
+                    </View>
+                    <TouchableOpacity
+                        style={styles.scanBtn}
+                        onPress={() =>
+                            navigation.navigate('BarcodeScanner', { returnTo: 'AddProduct' })
+                        }
+                    >
+                        <Text style={styles.scanBtnText}>Scan</Text>
+                    </TouchableOpacity>
+                </View>
 
-            <Text style={styles.label}>Price ({APP_CONFIG.currencySymbol}) *</Text>
-            <TextInput
-                style={styles.input}
-                value={price}
-                onChangeText={setPrice}
-                keyboardType="decimal-pad"
-                placeholder="0.00"
-                placeholderTextColor={Colors.textMuted}
-            />
+                <InputField
+                    label="Category"
+                    value={category}
+                    onChangeText={setCategory}
+                    placeholder="e.g. Food, Beverage"
+                />
 
-            <Text style={styles.label}>Low Stock Alert Threshold</Text>
-            <TextInput
-                style={styles.input}
-                value={threshold}
-                onChangeText={setThreshold}
-                keyboardType="numeric"
-                placeholder="5"
-                placeholderTextColor={Colors.textMuted}
-            />
+                <InputField
+                    label="Quantity *"
+                    value={quantity}
+                    onChangeText={setQuantity}
+                    keyboardType="numeric"
+                    placeholder="0"
+                />
 
-            <TouchableOpacity
-                style={[styles.button, isLoading && styles.buttonDisabled]}
-                onPress={handleSave}
-                disabled={isLoading}
-            >
-                {isLoading
-                    ? <ActivityIndicator color={Colors.white} />
-                    : <Text style={styles.buttonText}>Save Product</Text>}
-            </TouchableOpacity>
+                <InputField
+                    label={`Price (${APP_CONFIG.currencySymbol}) *`}
+                    value={price}
+                    onChangeText={setPrice}
+                    keyboardType="decimal-pad"
+                    placeholder="0.00"
+                />
+
+                <InputField
+                    label="Low Stock Alert Threshold"
+                    value={threshold}
+                    onChangeText={setThreshold}
+                    keyboardType="numeric"
+                    placeholder="5"
+                />
+
+                <PrimaryButton
+                    title="Save Product"
+                    onPress={handleSave}
+                    loading={isLoading}
+                    style={styles.button}
+                />
+            </View>
 
             {/* Validation / Save Error Modal */}
             <AppModal
@@ -177,56 +182,57 @@ export default function AddProductScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    inner: { padding: Spacing.lg },
+    inner: { padding: Spacing.lg, paddingBottom: Spacing.xxl },
+    header: {
+        marginBottom: Spacing.md,
+    },
+    title: {
+        fontSize: FontSize.xxl,
+        fontWeight: FontWeight.extrabold,
+        color: Colors.textPrimary,
+    },
+    subtitle: {
+        marginTop: Spacing.xs,
+        fontSize: FontSize.sm,
+        color: Colors.textSecondary,
+    },
+    formCard: {
+        backgroundColor: Colors.surface,
+        borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        padding: Spacing.md,
+        ...Shadow.sm,
+    },
     label: {
         fontSize: FontSize.sm,
-        fontWeight: 'bold',
+        fontWeight: FontWeight.semibold,
         color: Colors.textSecondary,
         marginBottom: Spacing.xs,
     },
-    input: {
-        backgroundColor: Colors.surface,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        borderRadius: BorderRadius.md,
-        paddingHorizontal: Spacing.md,
-        paddingVertical: Spacing.sm + 4,
-        fontSize: FontSize.md,
-        color: Colors.textPrimary,
-        marginBottom: Spacing.md,
-    },
-    button: {
-        backgroundColor: Colors.primary,
-        borderRadius: BorderRadius.md,
-        paddingVertical: Spacing.md,
-        alignItems: 'center',
-        marginTop: Spacing.sm,
-    },
-    buttonDisabled: {
-        backgroundColor: Colors.textMuted,
-    },
-    buttonText: { color: Colors.white, fontSize: FontSize.md, fontWeight: 'bold' },
+    button: { marginTop: Spacing.sm },
     skuRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: Spacing.sm,
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.sm,
     },
     skuInput: {
         flex: 1,
-        marginBottom: 0,
     },
     scanBtn: {
         backgroundColor: Colors.primary,
         borderRadius: BorderRadius.md,
-        paddingVertical: Spacing.sm + 4,
+        minHeight: 52,
+        paddingVertical: Spacing.md,
         paddingHorizontal: Spacing.md,
         alignItems: 'center',
         justifyContent: 'center',
+        ...Shadow.sm,
     },
     scanBtnText: {
         color: Colors.white,
         fontSize: FontSize.sm,
-        fontWeight: 'bold',
+        fontWeight: FontWeight.bold,
     },
 });

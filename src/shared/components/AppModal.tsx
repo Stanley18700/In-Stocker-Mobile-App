@@ -23,16 +23,8 @@ import {
     Text,
     TouchableOpacity,
     StyleSheet,
-    Platform,
 } from 'react-native';
 import { Colors, FontSize, FontWeight, Spacing, BorderRadius, Shadow } from '../../core/theme';
-
-interface AppModalButton {
-    label: string;
-    onPress: () => void;
-    /** 'primary' = filled brand colour, 'danger' = red, 'ghost' = outlined */
-    variant?: 'primary' | 'danger' | 'ghost';
-}
 
 interface AppModalProps {
     visible: boolean;
@@ -131,21 +123,15 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.xl,
         padding: Spacing.lg,
         alignItems: 'center',
-        ...(Platform.OS === 'web'
-            ? { boxShadow: '0 20px 60px rgba(0,0,0,0.25)' } as any
-            : {
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 12 },
-                shadowOpacity: 0.20,
-                shadowRadius: 24,
-                elevation: 16,
-            }),
+        borderWidth: 1,
+        borderColor: Colors.border,
+        ...Shadow.lg,
     },
     iconBadge: {
         width: 64,
         height: 64,
         borderRadius: 32,
-        backgroundColor: Colors.surfaceAlt,
+        backgroundColor: Colors.primaryLight,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: Spacing.md,
@@ -155,7 +141,7 @@ const styles = StyleSheet.create({
     },
     title: {
         fontSize: FontSize.lg,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.extrabold,
         color: Colors.textPrimary,
         textAlign: 'center',
         marginBottom: Spacing.xs,

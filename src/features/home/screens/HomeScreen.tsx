@@ -144,11 +144,11 @@ export default function HomeScreen() {
                 <View style={styles.headerText}>
                     <Text style={styles.greeting}>{getGreeting()},</Text>
                     <Text style={styles.ownerName}>
-                        {user?.ownerName ?? 'there'} 👋
+                        {user?.ownerName ?? 'there'}
                     </Text>
                 </View>
                 <View style={styles.shopBadge}>
-                    <Text style={styles.shopBadgeText}>🏪 {user?.shopName ?? ''}</Text>
+                    <Text style={styles.shopBadgeText}>{user?.shopName ?? 'Your Shop'}</Text>
                 </View>
             </View>
 
@@ -305,8 +305,10 @@ const styles = StyleSheet.create({
     },
     shopBadge: {
         backgroundColor: Colors.primaryLight,
-        borderRadius: BorderRadius.full,
-        paddingHorizontal: Spacing.sm,
+        borderRadius: BorderRadius.md,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.xs,
         marginLeft: Spacing.sm,
         marginTop: Spacing.xs,
@@ -327,6 +329,8 @@ const styles = StyleSheet.create({
     statCard: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
         padding: Spacing.md,
         alignItems: 'flex-start',
         margin: Spacing.xs,
@@ -417,6 +421,8 @@ const styles = StyleSheet.create({
     salesCard: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
         overflow: 'hidden',
     },
     saleRow: {
@@ -452,6 +458,8 @@ const styles = StyleSheet.create({
     emptyCard: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
         padding: Spacing.xl,
         alignItems: 'center',
     },

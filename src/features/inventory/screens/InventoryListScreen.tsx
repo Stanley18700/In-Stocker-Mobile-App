@@ -11,7 +11,14 @@ import {
     TextInput,
 } from 'react-native';
 import { useInventory } from '../hooks/useInventory';
-import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
+import {
+    Colors,
+    Spacing,
+    FontSize,
+    BorderRadius,
+    FontWeight,
+    Shadow,
+} from '../../../core/theme';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { InventoryStackParamList } from '../../../core/navigation/types';
 import { Product } from '../../../shared/types/product';
@@ -65,7 +72,6 @@ export default function InventoryListScreen({ navigation }: Props) {
     return (
         <View style={styles.container}>
             <View style={styles.searchBar}>
-                <Text style={styles.searchIcon}>🔍</Text>
                 <TextInput
                     style={styles.searchInput}
                     placeholder="Search by name or SKU..."
@@ -76,7 +82,7 @@ export default function InventoryListScreen({ navigation }: Props) {
                 />
                 {query.length > 0 && (
                     <TouchableOpacity onPress={() => setQuery('')}>
-                        <Text style={styles.clearBtn}>✕</Text>
+                        <Text style={styles.clearBtn}>Clear</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -115,13 +121,15 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.surface,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        borderRadius: BorderRadius.md,
+        margin: Spacing.md,
         paddingHorizontal: Spacing.md,
         paddingVertical: Spacing.sm,
         gap: Spacing.sm,
+        ...Shadow.sm,
     },
-    searchIcon: { fontSize: 16 },
     searchInput: {
         flex: 1,
         fontSize: FontSize.md,
@@ -129,8 +137,13 @@ const styles = StyleSheet.create({
         height: 36,
         paddingVertical: 0,
     },
-    clearBtn: { fontSize: 14, color: Colors.textMuted, padding: 4 },
-    list: { padding: Spacing.md },
+    clearBtn: {
+        fontSize: FontSize.xs,
+        color: Colors.textSecondary,
+        fontWeight: FontWeight.semibold,
+        paddingVertical: Spacing.xs,
+    },
+    list: { paddingHorizontal: Spacing.md, paddingBottom: Spacing.xxl },
     card: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.md,
@@ -141,16 +154,17 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: Colors.border,
+        ...Shadow.sm,
     },
     cardLeft: { flex: 1 },
     cardRight: { alignItems: 'flex-end' },
-    productName: { fontSize: FontSize.md, fontWeight: 'bold', color: Colors.textPrimary },
+    productName: { fontSize: FontSize.md, fontWeight: FontWeight.semibold, color: Colors.textPrimary },
     sku: { fontSize: FontSize.xs, color: Colors.textMuted, marginTop: 2 },
-    price: { fontSize: FontSize.md, fontWeight: 'bold', color: Colors.primary },
+    price: { fontSize: FontSize.md, fontWeight: FontWeight.bold, color: Colors.primary },
     badge: { borderRadius: BorderRadius.full, paddingHorizontal: 8, paddingVertical: 2, marginTop: 4 },
     badgeOk: { backgroundColor: Colors.secondaryLight },
     badgeLow: { backgroundColor: Colors.dangerLight },
-    badgeText: { fontSize: FontSize.xs, fontWeight: 'bold' },
+    badgeText: { fontSize: FontSize.xs, fontWeight: FontWeight.semibold },
     empty: { textAlign: 'center', color: Colors.textMuted, marginTop: 60, fontSize: FontSize.md },
     fab: {
         position: 'absolute',
@@ -162,15 +176,10 @@ const styles = StyleSheet.create({
         borderRadius: 28,
         justifyContent: 'center',
         alignItems: 'center',
+        ...Shadow.md,
         ...Platform.select({
-            web: { boxShadow: '0 2px 8px rgba(0,0,0,0.20)' },
-            default: {
-                elevation: 4,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.2,
-                shadowRadius: 4,
-            },
+            web: { cursor: 'pointer' },
+            default: {},
         }),
     },
     fabText: { color: Colors.white, fontSize: 28, fontWeight: 'normal', lineHeight: 32 },
