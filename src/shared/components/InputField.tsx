@@ -12,6 +12,7 @@ import {
     Spacing,
     FontSize,
     BorderRadius,
+    Shadow,
 } from '../../core/theme';
 
 // ---------------------------------------------------------------------------
@@ -77,7 +78,7 @@ export default function InputField({
                         style={styles.eyeBtn}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                     >
-                        <Text style={styles.eyeIcon}>{isHidden ? '🙈' : '👁️'}</Text>
+                        <Text style={styles.eyeIcon}>{isHidden ? 'Show' : 'Hide'}</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -98,22 +99,25 @@ const styles = StyleSheet.create({
     },
     label: {
         fontSize: FontSize.sm,
-        fontWeight: '600',
+        fontWeight: '500',
         color: Colors.textSecondary,
-        marginBottom: Spacing.xs,
+        marginBottom: Spacing.sm,
     },
     inputRow: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.surface,
-        borderWidth: 1.5,
+        borderWidth: 1,
         borderColor: Colors.border,
         borderRadius: BorderRadius.md,
         paddingHorizontal: Spacing.md,
-        minHeight: 50,
+        minHeight: 52,
+        ...Shadow.sm,
     },
     inputFocused: {
         borderColor: Colors.primary,
+        backgroundColor: Colors.white,
+        ...Shadow.md,
     },
     inputError: {
         borderColor: Colors.danger,
@@ -125,10 +129,16 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.sm,
     },
     eyeBtn: {
-        paddingLeft: Spacing.sm,
+        marginLeft: Spacing.sm,
+        paddingVertical: Spacing.xs,
+        paddingHorizontal: Spacing.xs,
+        borderRadius: BorderRadius.sm,
+        backgroundColor: Colors.surfaceAlt,
     },
     eyeIcon: {
-        fontSize: 16,
+        fontSize: FontSize.xs,
+        color: Colors.textSecondary,
+        fontWeight: '600',
     },
     errorText: {
         fontSize: FontSize.xs,

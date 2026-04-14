@@ -11,7 +11,7 @@ import {
 import { useAuthStore } from '../store/authStore';
 import InputField from '../../../shared/components/InputField';
 import PrimaryButton from '../../../shared/components/PrimaryButton';
-import { Colors, FontSize, FontWeight, Spacing } from '../../../core/theme';
+import { BorderRadius, Colors, FontSize, FontWeight, Shadow, Spacing } from '../../../core/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../core/navigation/types';
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         justifyContent: 'center',
-        paddingHorizontal: Spacing.xl,
+        paddingHorizontal: Spacing.lg,
         paddingVertical: Spacing.xxl,
     },
     logo: {
@@ -124,9 +124,16 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
         textAlign: 'center',
-        marginBottom: Spacing.xl,
+        marginBottom: Spacing.lg,
     },
     form: {
+        backgroundColor: Colors.surface,
+        borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.lg,
+        ...Shadow.md,
     },
     error: {
         fontSize: FontSize.sm,
@@ -143,11 +150,11 @@ const styles = StyleSheet.create({
         marginTop: Spacing.xl,
     },
     footerText: {
-        fontSize: FontSize.md,
+        fontSize: FontSize.sm,
         color: Colors.textSecondary,
     },
     link: {
-        fontSize: FontSize.md,
+        fontSize: FontSize.sm,
         fontWeight: FontWeight.bold,
         color: Colors.primary,
     },

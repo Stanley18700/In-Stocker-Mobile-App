@@ -11,7 +11,7 @@ import {
 import { useAuth } from '../hooks/useAuth';
 import InputField from '../../../shared/components/InputField';
 import PrimaryButton from '../../../shared/components/PrimaryButton';
-import { Colors, Spacing, FontSize, FontWeight } from '../../../core/theme';
+import { BorderRadius, Colors, FontSize, FontWeight, Shadow, Spacing } from '../../../core/theme';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../core/navigation/types';
@@ -133,34 +133,56 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-    flex: { flex: 1 },
+    flex: {
+        flex: 1,
+        backgroundColor: Colors.background,
+    },
     container: {
         flexGrow: 1,
-        backgroundColor: Colors.background,
-        alignItems: 'center',
         justifyContent: 'center',
-        padding: Spacing.xl,
+        paddingHorizontal: Spacing.lg,
+        paddingVertical: Spacing.xxl,
     },
-    logo: { fontSize: 64, marginBottom: Spacing.sm },
+    logo: {
+        fontSize: 56,
+        textAlign: 'center',
+        marginBottom: Spacing.sm,
+    },
     title: {
-        fontSize: FontSize.xxl,
-        fontWeight: FontWeight.bold,
+        fontSize: FontSize.xxxl,
+        fontWeight: FontWeight.extrabold,
         color: Colors.textPrimary,
         marginBottom: Spacing.xs,
+        textAlign: 'center',
     },
     subtitle: {
         fontSize: FontSize.sm,
         color: Colors.textSecondary,
-        marginBottom: Spacing.xl,
+        marginBottom: Spacing.lg,
+        textAlign: 'center',
     },
-    form: { width: '100%', maxWidth: 400 },
+    form: {
+        width: '100%',
+        maxWidth: 400,
+        alignSelf: 'center',
+        backgroundColor: Colors.surface,
+        borderRadius: BorderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        paddingHorizontal: Spacing.md,
+        paddingVertical: Spacing.lg,
+        ...Shadow.md,
+    },
     error: {
         color: Colors.danger,
         fontSize: FontSize.sm,
-        marginBottom: Spacing.md,
+        marginBottom: Spacing.sm,
         textAlign: 'center',
     },
-    footer: { marginTop: Spacing.xl },
+    footer: {
+        marginTop: Spacing.xl,
+        alignItems: 'center',
+    },
     footerText: { fontSize: FontSize.sm, color: Colors.textSecondary },
     footerLink: { color: Colors.primary, fontWeight: FontWeight.bold },
 });
