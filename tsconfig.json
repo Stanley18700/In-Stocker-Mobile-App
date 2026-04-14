@@ -10,8 +10,16 @@
     }
   },
   "include": [
-    "**/*.ts",
-    "**/*.tsx",
+    "index.ts",
+    "App.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
     ".expo/types/**/*.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".expo",
+    ".firebase"
   ]
 }
