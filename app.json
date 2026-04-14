@@ -33,7 +33,8 @@
         {
           "cameraPermission": "Allow in-stocker to use the camera to scan barcodes."
         }
-      ]
+      ],
+      "expo-font"
     ]
   }
 }
