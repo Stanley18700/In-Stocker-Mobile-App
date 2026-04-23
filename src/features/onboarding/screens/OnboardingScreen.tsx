@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
     Animated,
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
     Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+    useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -19,22 +20,13 @@ import {
 } from '../../../core/theme';
 import { useOnboardingStore } from '../store/onboardingStore';
 
-type Slide = {
-    icon: React.ComponentProps<typeof Ionicons>['name'];
-    title: string;
-    subtitle: string;
-    bullets: string[];
-};
+// ---------------------------------------------------------------------------
+// Data
+// ---------------------------------------------------------------------------
 
-type PolicySection = {
-    title: string;
-    body: string;
-    bullets?: string[];
-};
-
-const slides: Slide[] = [
+const SLIDES = [
     {
-        icon: 'storefront-outline',
+        icon: 'storefront-outline' as const,
         title: 'Welcome to In-Stocker',
         subtitle: 'Built for small retail shops that need clear, simple inventory decisions.',
         bullets: [
@@ -44,7 +36,7 @@ const slides: Slide[] = [
         ],
     },
     {
-        icon: 'warning-outline',
+        icon: 'warning-outline' as const,
         title: 'The Problem We Solve',
         subtitle: 'Shop owners often guess what to buy, causing shortages or dead stock.',
         bullets: [
@@ -54,7 +46,7 @@ const slides: Slide[] = [
         ],
     },
     {
-        icon: 'analytics-outline',
+        icon: 'analytics-outline' as const,
         title: 'How In-Stocker Helps',
         subtitle: 'Turn sales history into practical reorder actions.',
         bullets: [
@@ -65,7 +57,7 @@ const slides: Slide[] = [
     },
 ];
 
-const policySections: PolicySection[] = [
+const POLICY_SECTIONS = [
     {
         title: '1) Who we are',
         body: 'This Privacy Policy describes how Nyan SInt Zaw ("we", "us") collects, uses, and shares information when you use the In-Stocker mobile application (the "App"). Contact: 6731503077@lamduan.mfu.ac.th',
@@ -122,7 +114,7 @@ const policySections: PolicySection[] = [
         body: 'We use reasonable administrative, technical, and physical safeguards designed to protect your information. No method of transmission or storage is 100% secure.',
     },
     {
-        title: '9) Children’s privacy',
+        title: "9) Children\u2019s privacy",
         body: 'The App is not directed to children under 13 (or local legal age), and we do not knowingly collect personal information from children.',
     },
     {
@@ -144,19 +136,12 @@ const policySections: PolicySection[] = [
     },
 ];
 
-export default function OnboardingScreen() {
-    const markCompleted = useOnboardingStore((s) => s.markCompleted);
-    const [index, setIndex] = useState(0);
-    const [step, setStep] = useState<'slides' | 'policy'>('slides');
-    const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const cardAnim = useRef(new Animated.Value(1)).current;
+// ---------------------------------------------------------------------------
+// Sub-components
+// ---------------------------------------------------------------------------
 
-    const isPolicyStep = step === 'policy';
-    const isLastSlide = index === slides.length - 1;
-    const totalSteps = slides.length + 1;
-    const activeStep = isPolicyStep ? totalSteps : index + 1;
-    const slide = useMemo(() => slides[index], [index]);
+function SlideView({ slide, index, total }: { slide: typeof SLIDES[0]; index: number; total: number }) {
+    const cardAnim = useRef(new Animated.Value(1)).current;
 
     useEffect(() => {
         cardAnim.setValue(0.96);
@@ -167,139 +152,186 @@ export default function OnboardingScreen() {
         }).start();
     }, [cardAnim, index]);
 
-    const next = async () => {
+    return (
+        <View style={slide_s.wrapper}>
+            <Animated.View
+                style={[
+                    slide_s.card,
+                    Shadow.md,
+                    {
+                        opacity: cardAnim,
+                        transform: [
+                            {
+                                translateY: cardAnim.interpolate({
+                                    inputRange: [0.96, 1],
+                                    outputRange: [6, 0],
+                                }),
+                            },
+                        ],
+                    },
+                ]}
+            >
+                <View style={slide_s.iconWrap}>
+                    <Ionicons name={slide.icon} size={34} color={Colors.primary} />
+                </View>
+                <Text style={slide_s.title}>{slide.title}</Text>
+                <Text style={slide_s.subtitle}>{slide.subtitle}</Text>
+                <View style={slide_s.bullets}>
+                    {slide.bullets.map((b) => (
+                        <View key={b} style={slide_s.bulletRow}>
+                            <Ionicons name="checkmark-circle" size={16} color={Colors.secondary} />
+                            <Text style={slide_s.bulletText}>{b}</Text>
+                        </View>
+                    ))}
+                </View>
+            </Animated.View>
+
+            {/* Dots */}
+            <View style={slide_s.dots}>
+                {Array.from({ length: total }).map((_, i) => (
+                    <View
+                        key={i}
+                        style={[slide_s.dot, i === index && slide_s.dotActive]}
+                    />
+                ))}
+            </View>
+        </View>
+    );
+}
+
+function PolicyView({
+    accepted,
+    onToggle,
+}: {
+    accepted: boolean;
+    onToggle: () => void;
+}) {
+    return (
+        <ScrollView
+            style={policy_s.scroll}
+            contentContainerStyle={policy_s.content}
+            showsVerticalScrollIndicator
+        >
+            <View style={[policy_s.card, Shadow.sm]}>
+                <Text style={policy_s.title}>Privacy Policy</Text>
+                <Text style={policy_s.updated}>Last updated: April 22, 2026</Text>
+
+                {POLICY_SECTIONS.map((sec) => (
+                    <View key={sec.title} style={policy_s.section}>
+                        <Text style={policy_s.secTitle}>{sec.title}</Text>
+                        <Text style={policy_s.body}>{sec.body}</Text>
+                        {sec.bullets?.map((b) => (
+                            <Text key={b} style={policy_s.bullet}>
+                                {'\u2022'} {b}
+                            </Text>
+                        ))}
+                    </View>
+                ))}
+
+                <TouchableOpacity
+                    style={policy_s.checkRow}
+                    onPress={onToggle}
+                    activeOpacity={0.8}
+                >
+                    <View style={[policy_s.checkbox, accepted && policy_s.checkboxOn]}>
+                        {accepted && (
+                            <Ionicons name="checkmark" size={14} color={Colors.white} />
+                        )}
+                    </View>
+                    <Text style={policy_s.checkLabel}>
+                        I have read and agree to this Privacy Policy.
+                    </Text>
+                </TouchableOpacity>
+            </View>
+        </ScrollView>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Main screen
+// ---------------------------------------------------------------------------
+
+export default function OnboardingScreen() {
+    const { height } = useWindowDimensions();
+    const markCompleted = useOnboardingStore((s) => s.markCompleted);
+
+    const [slideIndex, setSlideIndex] = useState(0);
+    const [step, setStep] = useState<'slides' | 'policy'>('slides');
+    const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const isPolicyStep = step === 'policy';
+    const isLastSlide = slideIndex === SLIDES.length - 1;
+    const totalSteps = SLIDES.length + 1;
+    const activeStep = isPolicyStep ? totalSteps : slideIndex + 1;
+
+    const handleNext = async () => {
         if (!isPolicyStep && !isLastSlide) {
-            setIndex((v) => Math.min(v + 1, slides.length - 1));
+            setSlideIndex((v) => v + 1);
             return;
         }
-
         if (!isPolicyStep && isLastSlide) {
             setStep('policy');
             return;
         }
-
-        if (!acceptedPrivacy || isSaving) {
-            return;
-        }
-
+        if (!acceptedPrivacy || isSaving) return;
         setIsSaving(true);
         await markCompleted();
         setIsSaving(false);
     };
 
-    const prev = () => {
+    const handleBack = () => {
         if (isPolicyStep) {
             setStep('slides');
             return;
         }
-        setIndex((v) => Math.max(v - 1, 0));
+        setSlideIndex((v) => Math.max(v - 1, 0));
     };
 
+    const isBackDisabled = !isPolicyStep && slideIndex === 0;
+    const isNextDisabled = isPolicyStep && !acceptedPrivacy;
+
+    // Use explicit height (useWindowDimensions returns the real viewport size
+    // on both native and web, giving the flex chain a concrete anchor).
+    const containerHeight = Platform.OS === 'web' ? ('100vh' as unknown as number) : height;
+
     return (
-        <View style={styles.container}>
+        <View style={[styles.root, { height: containerHeight }]}>
+            {/* ── Header ── */}
             <View style={styles.header}>
                 <Text style={styles.brand}>In-Stocker</Text>
-                <Text style={styles.progress}>Step {activeStep} of {totalSteps}</Text>
+                <Text style={styles.progress}>
+                    Step {activeStep} of {totalSteps}
+                </Text>
             </View>
 
-            <View style={styles.contentArea}>
-                {!isPolicyStep ? (
-                    <>
-                        <Animated.View
-                            style={[
-                                styles.card,
-                                Shadow.md,
-                                {
-                                    opacity: cardAnim,
-                                    transform: [
-                                        {
-                                            translateY: cardAnim.interpolate({
-                                                inputRange: [0.96, 1],
-                                                outputRange: [6, 0],
-                                            }),
-                                        },
-                                    ],
-                                },
-                            ]}
-                        >
-                            <View style={styles.iconWrap}>
-                                <Ionicons name={slide.icon} size={34} color={Colors.primary} />
-                            </View>
-
-                            <Text style={styles.title}>{slide.title}</Text>
-                            <Text style={styles.subtitle}>{slide.subtitle}</Text>
-
-                            <View style={styles.bulletsWrap}>
-                                {slide.bullets.map((item) => (
-                                    <View key={item} style={styles.bulletRow}>
-                                        <Ionicons name="checkmark-circle" size={16} color={Colors.secondary} />
-                                        <Text style={styles.bulletText}>{item}</Text>
-                                    </View>
-                                ))}
-                            </View>
-                        </Animated.View>
-
-                        <View style={styles.dotsRow}>
-                            {slides.map((_, dotIndex) => (
-                                <View
-                                    key={String(dotIndex)}
-                                    style={[
-                                        styles.dot,
-                                        dotIndex === index && styles.dotActive,
-                                    ]}
-                                />
-                            ))}
-                        </View>
-                    </>
+            {/* ── Content (flex: 1, clips overflow so ScrollView can scroll) ── */}
+            <View style={styles.body}>
+                {isPolicyStep ? (
+                    <PolicyView
+                        accepted={acceptedPrivacy}
+                        onToggle={() => setAcceptedPrivacy((v) => !v)}
+                    />
                 ) : (
-                    <ScrollView
-                        style={styles.policyStepScroll}
-                        contentContainerStyle={styles.policyStepScrollContent}
-                        showsVerticalScrollIndicator
-                    >
-                        <View style={[styles.privacyCard, Shadow.sm]}>
-                            <Text style={styles.privacyTitle}>Privacy Policy</Text>
-                            <Text style={styles.privacyUpdated}>Last updated: April 22, 2026</Text>
-                            {policySections.map((section) => (
-                                <View key={section.title} style={styles.policySection}>
-                                    <Text style={styles.policySectionTitle}>{section.title}</Text>
-                                    <Text style={styles.privacyText}>{section.body}</Text>
-                                    {section.bullets?.map((item) => (
-                                        <Text key={item} style={styles.policyBullet}>• {item}</Text>
-                                    ))}
-                                </View>
-                            ))}
-
-                            <TouchableOpacity
-                                style={styles.checkboxRow}
-                                onPress={() => setAcceptedPrivacy((v) => !v)}
-                                activeOpacity={0.8}
-                            >
-                                <View style={[styles.checkbox, acceptedPrivacy && styles.checkboxChecked]}>
-                                    {acceptedPrivacy && <Ionicons name="checkmark" size={14} color={Colors.white} />}
-                                </View>
-                                <Text style={styles.checkboxLabel}>
-                                    I have read and agree to this Privacy Policy.
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
-                    </ScrollView>
+                    <SlideView
+                        slide={SLIDES[slideIndex]}
+                        index={slideIndex}
+                        total={SLIDES.length}
+                    />
                 )}
             </View>
 
+            {/* ── Footer — always visible, never inside ScrollView ── */}
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[
-                        styles.secondaryBtn,
-                        index === 0 && !isPolicyStep && styles.secondaryBtnDisabled,
-                    ]}
-                    disabled={index === 0 && !isPolicyStep}
-                    onPress={prev}
+                    style={[styles.secondaryBtn, isBackDisabled && styles.btnDisabledBorder]}
+                    onPress={handleBack}
+                    disabled={isBackDisabled}
                 >
                     <Text
                         style={[
                             styles.secondaryBtnText,
-                            index === 0 && !isPolicyStep && styles.secondaryBtnTextDisabled,
+                            isBackDisabled && styles.btnTextMuted,
                         ]}
                     >
                         Back
@@ -307,17 +339,18 @@ export default function OnboardingScreen() {
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                    style={[
-                        styles.primaryBtn,
-                        isPolicyStep && !acceptedPrivacy && styles.primaryBtnDisabled,
-                    ]}
-                    onPress={next}
-                    disabled={isPolicyStep && !acceptedPrivacy}
+                    style={[styles.primaryBtn, isNextDisabled && styles.primaryBtnDisabled]}
+                    onPress={handleNext}
+                    disabled={isNextDisabled}
                 >
                     <Text style={styles.primaryBtnText}>
                         {isPolicyStep
-                            ? (isSaving ? 'Finishing...' : 'Agree & Get Started')
-                            : (isLastSlide ? 'Review Policy' : 'Next')}
+                            ? isSaving
+                                ? 'Finishing…'
+                                : 'Agree & Get Started'
+                            : isLastSlide
+                            ? 'Review Policy'
+                            : 'Next'}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -325,33 +358,20 @@ export default function OnboardingScreen() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// Styles
+// ---------------------------------------------------------------------------
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
+    root: {
         backgroundColor: Colors.background,
         paddingHorizontal: Spacing.lg,
         paddingTop: Spacing.xxl,
         paddingBottom: Spacing.xl,
-        // On web: pin the container to 100vh so the flex chain has a concrete
-        // bounded height — without this the browser lets it grow infinitely
-        // and the ScrollView never actually scrolls.
-        ...(Platform.OS === 'web'
-            ? { height: '100vh' as any, overflow: 'hidden' as const }
-            : {}),
+        flexDirection: 'column',
     },
     header: {
         marginBottom: Spacing.md,
-    },
-    contentArea: {
-        flex: 1,
-        minHeight: 0,
-        ...(Platform.OS === 'web' ? { overflow: 'hidden' as const } : {}),
-    },
-    policyStepScroll: {
-        flex: 1,
-    },
-    policyStepScrollContent: {
-        paddingBottom: Spacing.md,
     },
     brand: {
         fontSize: FontSize.lg,
@@ -362,6 +382,60 @@ const styles = StyleSheet.create({
         marginTop: 2,
         color: Colors.textMuted,
         fontSize: FontSize.xs,
+    },
+    body: {
+        flex: 1,
+        overflow: 'hidden',
+    },
+    footer: {
+        marginTop: Spacing.sm,
+        flexDirection: 'row',
+        gap: Spacing.sm,
+    },
+    secondaryBtn: {
+        flex: 1,
+        minHeight: 48,
+        borderRadius: BorderRadius.md,
+        borderWidth: 1,
+        borderColor: Colors.borderStrong,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.surface,
+    },
+    btnDisabledBorder: {
+        borderColor: Colors.border,
+    },
+    secondaryBtnText: {
+        fontSize: FontSize.md,
+        fontWeight: FontWeight.semibold,
+        color: Colors.textPrimary,
+    },
+    btnTextMuted: {
+        color: Colors.textMuted,
+    },
+    primaryBtn: {
+        flex: 1.3,
+        minHeight: 48,
+        borderRadius: BorderRadius.md,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.primary,
+    },
+    primaryBtnDisabled: {
+        backgroundColor: Colors.textMuted,
+    },
+    primaryBtnText: {
+        color: Colors.white,
+        fontSize: FontSize.md,
+        fontWeight: FontWeight.bold,
+    },
+});
+
+// Slide sub-styles
+const slide_s = StyleSheet.create({
+    wrapper: {
+        flex: 1,
+        justifyContent: 'center',
     },
     card: {
         backgroundColor: Colors.surface,
@@ -391,10 +465,20 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
         marginBottom: Spacing.md,
     },
-    bulletsWrap: {
+    bullets: {
         gap: Spacing.sm,
     },
-    dotsRow: {
+    bulletRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        gap: Spacing.sm,
+    },
+    bulletText: {
+        flex: 1,
+        color: Colors.textPrimary,
+        fontSize: FontSize.sm,
+    },
+    dots: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -413,58 +497,58 @@ const styles = StyleSheet.create({
         opacity: 1,
         backgroundColor: Colors.primary,
     },
-    bulletRow: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        gap: Spacing.sm,
-    },
-    bulletText: {
+});
+
+// Policy sub-styles
+const policy_s = StyleSheet.create({
+    scroll: {
         flex: 1,
-        color: Colors.textPrimary,
-        fontSize: FontSize.sm,
     },
-    privacyCard: {
+    content: {
+        paddingBottom: Spacing.sm,
+    },
+    card: {
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
         borderWidth: 1,
         borderColor: Colors.border,
         padding: Spacing.md,
-        marginBottom: Spacing.md,
     },
-    privacyTitle: {
+    title: {
         fontSize: FontSize.md,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
     },
-    privacyUpdated: {
+    updated: {
         color: Colors.textMuted,
         fontSize: FontSize.xs,
         marginBottom: Spacing.sm,
     },
-    policySection: {
+    section: {
         marginBottom: Spacing.md,
     },
-    policySectionTitle: {
+    secTitle: {
         fontSize: FontSize.sm,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
         marginBottom: 4,
     },
-    privacyText: {
+    body: {
         color: Colors.textSecondary,
         fontSize: FontSize.xs,
         lineHeight: 18,
     },
-    policyBullet: {
+    bullet: {
         marginTop: 4,
         color: Colors.textSecondary,
         fontSize: FontSize.xs,
         lineHeight: 18,
     },
-    checkboxRow: {
+    checkRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: Spacing.sm,
+        marginTop: Spacing.md,
     },
     checkbox: {
         width: 20,
@@ -476,55 +560,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         backgroundColor: Colors.background,
     },
-    checkboxChecked: {
+    checkboxOn: {
         backgroundColor: Colors.primary,
         borderColor: Colors.primary,
     },
-    checkboxLabel: {
+    checkLabel: {
         flex: 1,
         color: Colors.textPrimary,
         fontSize: FontSize.sm,
-    },
-    footer: {
-        marginTop: Spacing.sm,
-        flexDirection: 'row',
-        gap: Spacing.sm,
-    },
-    secondaryBtn: {
-        flex: 1,
-        minHeight: 48,
-        borderRadius: BorderRadius.md,
-        borderWidth: 1,
-        borderColor: Colors.borderStrong,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.surface,
-    },
-    secondaryBtnDisabled: {
-        borderColor: Colors.border,
-    },
-    secondaryBtnText: {
-        fontSize: FontSize.md,
-        fontWeight: FontWeight.semibold,
-        color: Colors.textPrimary,
-    },
-    secondaryBtnTextDisabled: {
-        color: Colors.textMuted,
-    },
-    primaryBtn: {
-        flex: 1.3,
-        minHeight: 48,
-        borderRadius: BorderRadius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.primary,
-    },
-    primaryBtnDisabled: {
-        backgroundColor: Colors.textMuted,
-    },
-    primaryBtnText: {
-        color: Colors.white,
-        fontSize: FontSize.md,
-        fontWeight: FontWeight.bold,
     },
 });
