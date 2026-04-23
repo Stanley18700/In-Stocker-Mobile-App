@@ -21,12 +21,23 @@ export const useInventoryStore = create<InventoryState>((set) => ({
     isLoading: false,
     error: null,
     setProducts: (products) =>
-        set((state) => ({
-            products,
-            selectedProduct: state.selectedProduct
-                ? products.find((p) => p.id === state.selectedProduct?.id) ?? null
-                : null,
-        })),
+        set((state) => {
+            // Deduplicate by id — Firestore can emit two snapshot events for a
+            // single write (local optimistic + server-confirmed), which would
+            // otherwise cause the same item to appear twice momentarily.
+            const seen = new Set<string>();
+            const unique = products.filter((p) => {
+                if (seen.has(p.id)) return false;
+                seen.add(p.id);
+                return true;
+            });
+            return {
+                products: unique,
+                selectedProduct: state.selectedProduct
+                    ? unique.find((p) => p.id === state.selectedProduct?.id) ?? null
+                    : null,
+            };
+        }),
     addProduct: (product) =>
         set((state) => ({ products: [product, ...state.products] })),
     updateProduct: (product) =>
