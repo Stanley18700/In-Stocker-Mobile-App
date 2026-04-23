@@ -1,4 +1,4 @@
-import { collection, doc, query, where, orderBy, getDocs, runTransaction } from 'firebase/firestore';
+import { collection, doc, query, where, orderBy, getDocs, runTransaction, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../lib/database/firebaseConfig';
 import { Sale, CartItem, SaleFilters, SaleItem } from '../../../shared/types/sale';
 import * as Crypto from 'expo-crypto';
@@ -6,7 +6,39 @@ import * as Crypto from 'expo-crypto';
 const salesCollection = collection(db, 'sales');
 const productsCollection = collection(db, 'products');
 
+function mapSaleDoc(d: any): Sale {
+    const data = d.data();
+    return {
+        id: d.id,
+        userId: data.user_id,
+        totalAmount: data.total_amount,
+        createdAt: data.created_at,
+        items: (data.items || []).map((i: any) => ({
+            id: i.id,
+            saleId: d.id,
+            productId: i.product_id,
+            productName: i.product_name,
+            quantity: i.quantity,
+            unitPrice: i.unit_price,
+        })),
+    } as Sale;
+}
+
 export const salesService = {
+    subscribeHistory(userId: string, onData: (sales: Sale[]) => void, onError?: (error: unknown) => void) {
+        const q = query(salesCollection, where('user_id', '==', userId), orderBy('created_at', 'desc'));
+
+        return onSnapshot(
+            q,
+            (snapshot) => {
+                onData(snapshot.docs.map(mapSaleDoc));
+            },
+            (error) => {
+                if (onError) onError(error);
+            }
+        );
+    },
+
     async recordSale(cart: CartItem[], userId: string): Promise<Sale> {
         if (cart.length === 0) throw new Error('Cart is empty.');
 
@@ -87,23 +119,7 @@ export const salesService = {
         const q = query(salesCollection, where('user_id', '==', userId), orderBy('created_at', 'desc'));
         const snapshot = await getDocs(q);
 
-        let sales = snapshot.docs.map(d => {
-            const data = d.data();
-            return {
-                id: d.id,
-                userId: data.user_id,
-                totalAmount: data.total_amount,
-                createdAt: data.created_at,
-                items: (data.items || []).map((i: any) => ({
-                    id: i.id,
-                    saleId: d.id,
-                    productId: i.product_id,
-                    productName: i.product_name,
-                    quantity: i.quantity,
-                    unitPrice: i.unit_price,
-                }))
-            } as Sale;
-        });
+        let sales = snapshot.docs.map(mapSaleDoc);
 
         if (filters?.startDate) {
             sales = sales.filter(s => s.createdAt >= filters.startDate!);

@@ -1,4 +1,4 @@
-import { collection, doc, query, where, orderBy, getDocs, getDoc, setDoc, updateDoc, runTransaction } from 'firebase/firestore';
+import { collection, doc, query, where, orderBy, getDocs, getDoc, setDoc, updateDoc, runTransaction, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../lib/database/firebaseConfig';
 import { Product, CreateProductInput, UpdateProductInput } from '../../../shared/types/product';
 import * as Crypto from 'expo-crypto';
@@ -26,6 +26,25 @@ function mapDoc(doc: any): Product {
 }
 
 export const inventoryService = {
+    subscribeAll(userId: string, onData: (products: Product[]) => void, onError?: (error: unknown) => void) {
+        const q = query(
+            productsCollection,
+            where('user_id', '==', userId),
+            where('is_active', '==', 1),
+            orderBy('created_at', 'desc')
+        );
+
+        return onSnapshot(
+            q,
+            (snapshot) => {
+                onData(snapshot.docs.map(mapDoc));
+            },
+            (error) => {
+                if (onError) onError(error);
+            }
+        );
+    },
+
     async getAll(userId: string): Promise<Product[]> {
         const q = query(
             productsCollection,
