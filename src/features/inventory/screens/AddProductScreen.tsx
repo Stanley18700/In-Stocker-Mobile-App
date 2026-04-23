@@ -23,6 +23,7 @@ import { InventoryStackParamList } from '../../../core/navigation/types';
 import AppModal from '../../../shared/components/AppModal';
 import InputField from '../../../shared/components/InputField';
 import PrimaryButton from '../../../shared/components/PrimaryButton';
+import { usePreferencesStore } from '../../settings/store/preferencesStore';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'AddProduct'>;
@@ -31,6 +32,7 @@ type Props = {
 
 export default function AddProductScreen({ navigation, route }: Props) {
     const { createProduct, isLoading } = useInventory();
+    const { currency } = usePreferencesStore();
     const [name, setName] = useState('');
     const [sku, setSku] = useState('');
     const [quantity, setQuantity] = useState('');
@@ -144,7 +146,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
                 />
 
                 <InputField
-                    label={`Price (${APP_CONFIG.currencySymbol}) *`}
+                    label={`Price (${currency || APP_CONFIG.currencySymbol}) *`}
                     value={price}
                     onChangeText={setPrice}
                     keyboardType="decimal-pad"

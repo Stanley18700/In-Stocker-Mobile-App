@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
     View,
     Text,
@@ -14,41 +14,109 @@ import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { APP_CONFIG } from '../../../constants/config';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { InventoryStackParamList } from '../../../core/navigation/types';
+import { RouteProp } from '@react-navigation/native';
+import { inventoryService } from '../services/inventoryService';
+import { Product } from '../../../shared/types/product';
+import { usePreferencesStore } from '../../settings/store/preferencesStore';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'EditProduct'>;
+    route: RouteProp<InventoryStackParamList, 'EditProduct'>;
 };
 
-export default function EditProductScreen({ navigation }: Props) {
-    const { selectedProduct, editProduct, isLoading } = useInventory();
-
-    if (!selectedProduct) {
-        navigation.goBack();
-        return null;
-    }
-
-    const [name, setName] = useState(selectedProduct.name);
-    const [sku, setSku] = useState(selectedProduct.sku);
-    const [quantity, setQuantity] = useState(String(selectedProduct.quantity));
-    const [price, setPrice] = useState(String(selectedProduct.price));
-    const [threshold, setThreshold] = useState(String(selectedProduct.lowStockThreshold));
-    const [category, setCategory] = useState(selectedProduct.category ?? '');
+export default function EditProductScreen({ navigation, route }: Props) {
+    const { selectedProduct, editProduct, isLoading, setSelectedProduct } = useInventory();
+    const { currency } = usePreferencesStore();
+    const { productId } = route.params;
+    const [fallbackProduct, setFallbackProduct] = useState<Product | null>(null);
+    const [isFetchingProduct, setIsFetchingProduct] = useState(false);
+    const [name, setName] = useState('');
+    const [sku, setSku] = useState('');
+    const [quantity, setQuantity] = useState('');
+    const [price, setPrice] = useState('');
+    const [threshold, setThreshold] = useState('');
+    const [category, setCategory] = useState('');
     const [errorModal, setErrorModal] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
+
+    const product = useMemo(() => {
+        if (selectedProduct?.id === productId) {
+            return selectedProduct;
+        }
+        return fallbackProduct;
+    }, [fallbackProduct, productId, selectedProduct]);
+
+    useEffect(() => {
+        if (selectedProduct?.id === productId) {
+            setFallbackProduct(selectedProduct);
+            return;
+        }
+
+        let isMounted = true;
+        setIsFetchingProduct(true);
+
+        void inventoryService
+            .getById(productId)
+            .then((fetchedProduct) => {
+                if (!isMounted) return;
+                setFallbackProduct(fetchedProduct);
+                setSelectedProduct(fetchedProduct);
+            })
+            .catch(() => {
+                if (!isMounted) return;
+                showError('Could not load this product.');
+            })
+            .finally(() => {
+                if (!isMounted) return;
+                setIsFetchingProduct(false);
+            });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [productId, selectedProduct, setSelectedProduct]);
+
+    useEffect(() => {
+        if (!product) return;
+        setName(product.name);
+        setSku(product.sku);
+        setQuantity(String(product.quantity));
+        setPrice(String(product.price));
+        setThreshold(String(product.lowStockThreshold));
+        setCategory(product.category ?? '');
+    }, [product]);
 
     const showError = (msg: string) => { setErrorMsg(msg); setErrorModal(true); };
 
     const handleSave = async () => {
+        if (!product) return;
         if (!name.trim() || !quantity.trim() || !price.trim()) {
             showError('Name, quantity, and price are required.');
             return;
         }
+        const parsedQuantity = Number.parseInt(quantity, 10);
+        const parsedPrice = Number.parseFloat(price);
+        const parsedThreshold = Number.parseInt(threshold, 10);
+
+        if (Number.isNaN(parsedQuantity) || parsedQuantity < 0) {
+            showError('Please enter a valid quantity (0 or more).');
+            return;
+        }
+        if (Number.isNaN(parsedPrice) || parsedPrice <= 0) {
+            showError('Please enter a valid price (greater than 0).');
+            return;
+        }
+        if (Number.isNaN(parsedThreshold) || parsedThreshold < 1) {
+            showError('Please enter a valid low stock threshold (1 or more).');
+            return;
+        }
+
         try {
-            await editProduct(selectedProduct.id, {
+            await editProduct(product.id, {
                 name: name.trim(),
-                quantity: parseInt(quantity, 10),
-                price: parseFloat(price),
-                lowStockThreshold: parseInt(threshold, 10),
+                quantity: parsedQuantity,
+                price: parsedPrice,
+                lowStockThreshold: parsedThreshold,
                 category: category.trim() || undefined,
             });
             navigation.goBack();
@@ -63,6 +131,13 @@ export default function EditProductScreen({ navigation }: Props) {
             contentContainerStyle={styles.inner}
             keyboardShouldPersistTaps="handled"
         >
+            {isFetchingProduct && !product ? (
+                <View style={styles.loadingWrap}>
+                    <ActivityIndicator color={Colors.primary} />
+                    <Text style={styles.loadingText}>Loading product...</Text>
+                </View>
+            ) : (
+                <>
             <Text style={styles.label}>Product Name *</Text>
             <TextInput
                 style={styles.input}
@@ -99,7 +174,7 @@ export default function EditProductScreen({ navigation }: Props) {
                 placeholderTextColor={Colors.textMuted}
             />
 
-            <Text style={styles.label}>Price ({APP_CONFIG.currencySymbol}) *</Text>
+            <Text style={styles.label}>Price ({currency || APP_CONFIG.currencySymbol}) *</Text>
             <TextInput
                 style={styles.input}
                 value={price}
@@ -130,6 +205,8 @@ export default function EditProductScreen({ navigation }: Props) {
                     <Text style={styles.buttonText}>Save Changes</Text>
                 )}
             </TouchableOpacity>
+                </>
+            )}
 
             <AppModal
                 visible={errorModal}
@@ -153,6 +230,16 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: Colors.textSecondary,
         marginBottom: Spacing.xs,
+    },
+    loadingWrap: {
+        paddingVertical: Spacing.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: Spacing.sm,
+    },
+    loadingText: {
+        fontSize: FontSize.sm,
+        color: Colors.textSecondary,
     },
     input: {
         backgroundColor: Colors.surface,

@@ -62,7 +62,7 @@ export default function EditPreferencesScreen({ navigation }: Props) {
             {/* ── Low-Stock Threshold ── */}
             <Text style={styles.sectionTitle}>Low-Stock Threshold</Text>
             <Text style={styles.sectionHint}>
-                Products with stock at or below this number will trigger an alert.
+                This is your planning baseline for new items. Live alerts use each product's own threshold.
             </Text>
             <TextInput
                 style={styles.input}

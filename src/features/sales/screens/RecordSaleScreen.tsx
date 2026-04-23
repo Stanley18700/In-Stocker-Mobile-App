@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -16,6 +16,7 @@ import { Product } from '../../../shared/types/product';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SalesStackParamList } from '../../../core/navigation/types';
 import AppModal from '../../../shared/components/AppModal';
+import { usePreferencesStore } from '../../settings/store/preferencesStore';
 
 type Props = {
     navigation: StackNavigationProp<SalesStackParamList, 'RecordSale'>;
@@ -24,16 +25,13 @@ type Props = {
 type ModalState = 'none' | 'confirm' | 'success' | 'error';
 
 export default function RecordSaleScreen({ navigation }: Props) {
-    const { products, fetchProducts } = useInventory();
+    const { products } = useInventory();
     const { cart, cartTotal, cartItemCount, addProductToCart, removeFromCart, checkout } = useSales();
+    const { currency } = usePreferencesStore();
     const [query, setQuery] = useState('');
     const [modal, setModal] = useState<ModalState>('none');
     const [errorMsg, setErrorMsg] = useState('');
     const [isCheckingOut, setIsCheckingOut] = useState(false);
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
 
     const filtered = query.trim()
         ? products.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
@@ -51,7 +49,6 @@ export default function RecordSaleScreen({ navigation }: Props) {
             await checkout();
             setModal('success');
         } catch (e: any) {
-            console.error('[Checkout] failed:', e);
             setErrorMsg(e.message ?? 'Something went wrong.');
             setModal('error');
         } finally {
@@ -61,11 +58,14 @@ export default function RecordSaleScreen({ navigation }: Props) {
 
     const renderProduct = ({ item }: { item: Product }) => {
         const inCart = cart.find((c) => c.product.id === item.id);
+        const inCartQty = inCart?.quantity ?? 0;
+        const canAdd = item.quantity > 0 && inCartQty < item.quantity;
+
         return (
             <View style={styles.productRow}>
                 <View style={styles.productInfo}>
                     <Text style={styles.productName}>{item.name}</Text>
-                    <Text style={styles.productPrice}>{formatCurrency(item.price)}</Text>
+                    <Text style={styles.productPrice}>{formatCurrency(item.price, currency)}</Text>
                 </View>
                 <View style={styles.actions}>
                     {inCart && (
@@ -75,9 +75,9 @@ export default function RecordSaleScreen({ navigation }: Props) {
                     )}
                     {inCart && <Text style={styles.qtyText}>{inCart.quantity}</Text>}
                     <TouchableOpacity
-                        style={[styles.addBtn, item.quantity === 0 && styles.addBtnDisabled]}
+                        style={[styles.addBtn, !canAdd && styles.addBtnDisabled]}
                         onPress={() => addProductToCart(item)}
-                        disabled={item.quantity === 0}
+                        disabled={!canAdd}
                     >
                         <Ionicons name="add" size={18} color={Colors.white} />
                     </TouchableOpacity>
@@ -122,7 +122,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
             {/* ── Cart bar ────────────────────────────────────────────────── */}
             {cartItemCount > 0 && (
                 <View style={styles.cartBar}>
-                    <Text style={styles.cartInfo}>{cartItemCount} items · {formatCurrency(cartTotal)}</Text>
+                    <Text style={styles.cartInfo}>{cartItemCount} items · {formatCurrency(cartTotal, currency)}</Text>
                     <TouchableOpacity
                         style={[styles.checkoutBtn, isCheckingOut && styles.checkoutBtnLoading]}
                         onPress={handleCheckout}
@@ -140,7 +140,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 visible={modal === 'confirm'}
                 iconName="cart-outline"
                 title="Confirm Sale"
-                message={`${cartItemCount} item(s)  ·  ${formatCurrency(cartTotal)}\n\nThis will deduct stock for all items.`}
+                message={`${cartItemCount} item(s)  ·  ${formatCurrency(cartTotal, currency)}\n\nThis will deduct stock for all items.`}
                 confirmLabel="Confirm Sale"
                 onConfirm={handleConfirm}
                 cancelLabel="Cancel"
