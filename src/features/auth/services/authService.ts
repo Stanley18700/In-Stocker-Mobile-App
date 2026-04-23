@@ -31,7 +31,9 @@ export const authService = {
             email: email.toLowerCase(),
             shop_name: shopName,
             owner_name: ownerName,
-            created_at: now
+            created_at: now,
+            currency: 'K',
+            threshold: 5,
         };
 
         await setDoc(doc(db, 'users', uid), data);

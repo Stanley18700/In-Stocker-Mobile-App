@@ -12,6 +12,7 @@ import { SettingsStackParamList } from '../../../core/navigation/types';
 import { usePreferencesStore } from '../store/preferencesStore';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../../core/theme';
 import AppModal from '../../../shared/components/AppModal';
+import { useAuthStore } from '../../auth/store/authStore';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'EditPreferences'>;
@@ -21,23 +22,35 @@ type Props = {
 const CURRENCY_OPTIONS = ['K', '฿', '$', '€', '£', '¥'];
 
 export default function EditPreferencesScreen({ navigation }: Props) {
-    const { threshold, setThreshold, currency, setCurrency } = usePreferencesStore();
+    const { threshold, setThreshold, currency, setCurrency, savePreferences, isSaving } = usePreferencesStore();
+    const userId = useAuthStore((s) => s.user?.id);
 
     const [thresholdText, setThresholdText] = useState(String(threshold));
     const [selectedCurrency, setSelectedCurrency] = useState(currency);
     const [errorModal, setErrorModal] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
-    const handleSave = () => {
+    const handleSave = async () => {
+        if (!userId) {
+            setErrorMsg('Please sign in again and retry.');
+            setErrorModal(true);
+            return;
+        }
         const parsed = parseInt(thresholdText, 10);
         if (isNaN(parsed) || parsed < 1 || parsed > 9999) {
             setErrorMsg('Please enter a whole number between 1 and 9999.');
             setErrorModal(true);
             return;
         }
-        setThreshold(parsed);
-        setCurrency(selectedCurrency);
-        navigation.goBack();
+        try {
+            setThreshold(parsed);
+            setCurrency(selectedCurrency);
+            await savePreferences(userId);
+            navigation.goBack();
+        } catch {
+            setErrorMsg('Could not save preferences to Firebase. Please try again.');
+            setErrorModal(true);
+        }
     };
 
     return (
@@ -88,8 +101,8 @@ export default function EditPreferencesScreen({ navigation }: Props) {
                 ))}
             </View>
 
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                <Text style={styles.saveBtnText}>Save Preferences</Text>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={isSaving}>
+                <Text style={styles.saveBtnText}>{isSaving ? 'Saving...' : 'Save Preferences'}</Text>
             </TouchableOpacity>
 
             {/* Validation error modal */}

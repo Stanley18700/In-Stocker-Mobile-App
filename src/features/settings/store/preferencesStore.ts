@@ -1,12 +1,10 @@
 // ---------------------------------------------------------------------------
-// preferencesStore — persists app-level user preferences via AsyncStorage.
+// preferencesStore — user preferences persisted in Firestore.
 // Stores: currency symbol, default low-stock threshold.
 // ---------------------------------------------------------------------------
 
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const PREFS_KEY = 'instocker_prefs';
+import { preferencesService } from '../services/preferencesService';
 
 export interface Preferences {
     currency: string;
@@ -15,49 +13,53 @@ export interface Preferences {
 
 interface PreferencesState extends Preferences {
     hydrated: boolean;
+    isSaving: boolean;
     setCurrency: (currency: string) => void;
     setThreshold: (threshold: number) => void;
-    hydrate: () => Promise<void>;
-    persist: () => Promise<void>;
+    hydrate: (userId: string) => Promise<void>;
+    savePreferences: (userId: string) => Promise<void>;
+    resetToDefaults: () => void;
 }
 
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
-    currency: 'K',
-    threshold: 5,
+    currency: preferencesService.defaults().currency,
+    threshold: preferencesService.defaults().threshold,
     hydrated: false,
+    isSaving: false,
 
     setCurrency: (currency) => {
         set({ currency });
-        get().persist();
     },
 
     setThreshold: (threshold) => {
         set({ threshold });
-        get().persist();
     },
 
-    // Load saved prefs from AsyncStorage (call once on app startup)
-    hydrate: async () => {
+    // Load saved prefs from Firestore after auth user is available
+    hydrate: async (userId: string) => {
         try {
-            const raw = await AsyncStorage.getItem(PREFS_KEY);
-            if (raw) {
-                const saved: Partial<Preferences> = JSON.parse(raw);
-                set({ ...saved, hydrated: true });
-            } else {
-                set({ hydrated: true });
-            }
+            const saved = await preferencesService.getPreferences(userId);
+            set({ ...saved, hydrated: true });
         } catch {
             set({ hydrated: true });
         }
     },
 
-    // Write current prefs back to AsyncStorage
-    persist: async () => {
+    savePreferences: async (userId: string) => {
+        set({ isSaving: true });
         try {
             const { currency, threshold } = get();
-            await AsyncStorage.setItem(PREFS_KEY, JSON.stringify({ currency, threshold }));
+            await preferencesService.savePreferences(userId, { currency, threshold });
         } catch {
-            // silently ignore write errors
+            throw new Error('Failed to save preferences.');
+        } finally {
+            set({ isSaving: false });
         }
     },
+
+    resetToDefaults: () =>
+        set({
+            ...preferencesService.defaults(),
+            hydrated: false,
+        }),
 }));
