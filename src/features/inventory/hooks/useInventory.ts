@@ -12,7 +12,6 @@ export function useInventory() {
         isLoading,
         error,
         setProducts,
-        addProduct,
         updateProduct,
         deleteProduct,
         setSelectedProduct,
@@ -40,7 +39,10 @@ export function useInventory() {
             setError(null);
             try {
                 const product = await inventoryService.create(input, user?.id ?? '');
-                addProduct(product);
+                // NOTE: Do NOT call addProduct here. The real-time subscribeAll listener
+                // in AppNavigator already calls setProducts with the full fresh list
+                // whenever Firestore changes. Calling addProduct here would cause the
+                // new product to appear twice (once optimistically, once from the snapshot).
                 return product;
             } catch (e: any) {
                 setError(e.message);
@@ -49,7 +51,7 @@ export function useInventory() {
                 setLoading(false);
             }
         },
-        [setLoading, setError, addProduct]
+        [setLoading, setError]
     );
 
     const editProduct = useCallback(
