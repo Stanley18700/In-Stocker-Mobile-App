@@ -1,4 +1,4 @@
-import { collection, doc, query, where, orderBy, getDocs, runTransaction, onSnapshot } from 'firebase/firestore';
+import { collection, doc, query, where, getDocs, runTransaction, onSnapshot } from 'firebase/firestore';
 import { db } from '../../../lib/database/firebaseConfig';
 import { Sale, CartItem, SaleFilters, SaleItem } from '../../../shared/types/sale';
 import * as Crypto from 'expo-crypto';
@@ -24,14 +24,18 @@ function mapSaleDoc(d: any): Sale {
     } as Sale;
 }
 
+function sortByCreatedAtDesc(items: Sale[]): Sale[] {
+    return [...items].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
 export const salesService = {
     subscribeHistory(userId: string, onData: (sales: Sale[]) => void, onError?: (error: unknown) => void) {
-        const q = query(salesCollection, where('user_id', '==', userId), orderBy('created_at', 'desc'));
+        const q = query(salesCollection, where('user_id', '==', userId));
 
         return onSnapshot(
             q,
             (snapshot) => {
-                onData(snapshot.docs.map(mapSaleDoc));
+                onData(sortByCreatedAtDesc(snapshot.docs.map(mapSaleDoc)));
             },
             (error) => {
                 if (onError) onError(error);
@@ -116,10 +120,10 @@ export const salesService = {
     },
 
     async getHistory(userId: string, filters?: SaleFilters): Promise<Sale[]> {
-        const q = query(salesCollection, where('user_id', '==', userId), orderBy('created_at', 'desc'));
+        const q = query(salesCollection, where('user_id', '==', userId));
         const snapshot = await getDocs(q);
 
-        let sales = snapshot.docs.map(mapSaleDoc);
+        let sales = sortByCreatedAtDesc(snapshot.docs.map(mapSaleDoc));
 
         if (filters?.startDate) {
             sales = sales.filter(s => s.createdAt >= filters.startDate!);
