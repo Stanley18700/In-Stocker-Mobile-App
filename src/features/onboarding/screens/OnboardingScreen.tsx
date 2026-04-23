@@ -25,6 +25,12 @@ type Slide = {
     bullets: string[];
 };
 
+type PolicySection = {
+    title: string;
+    body: string;
+    bullets?: string[];
+};
+
 const slides: Slide[] = [
     {
         icon: 'storefront-outline',
@@ -58,14 +64,58 @@ const slides: Slide[] = [
     },
 ];
 
+const policySections: PolicySection[] = [
+    {
+        title: 'What data we collect',
+        body: 'In-Stocker collects account, profile, inventory, and sales data that you enter so core features can work correctly.',
+        bullets: [
+            'Account info: email and password (handled securely through Firebase Authentication)',
+            'Profile info: shop name and owner name',
+            'Inventory data: products, SKU/barcode, quantities, thresholds, and prices',
+            'Sales data: sold items, quantity, totals, and timestamps',
+        ],
+    },
+    {
+        title: 'How we use your data',
+        body: 'Your data is used only to provide and improve inventory and sales management in the app.',
+        bullets: [
+            'Display stock status and low-stock alerts',
+            'Generate buffer stock recommendations from sales history',
+            'Create sales history views and reports',
+            'Sync your records across sessions when signed in',
+        ],
+    },
+    {
+        title: 'Third-party services',
+        body: 'We use Firebase services (Google) for authentication and cloud database storage. We do not sell your personal information.',
+    },
+    {
+        title: 'Your choices and rights',
+        body: 'You can request account/data deletion and manage device permissions at any time.',
+        bullets: [
+            'Camera access is optional and only used for barcode scanning',
+            'You can still manually enter SKU codes if camera permission is denied',
+            'Contact support for data deletion requests',
+        ],
+    },
+    {
+        title: 'Contact',
+        body: 'For privacy questions or requests, contact: 6731503077@lamduan.mfu.ac.th',
+    },
+];
+
 export default function OnboardingScreen() {
     const markCompleted = useOnboardingStore((s) => s.markCompleted);
     const [index, setIndex] = useState(0);
+    const [step, setStep] = useState<'slides' | 'policy'>('slides');
     const [acceptedPrivacy, setAcceptedPrivacy] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
     const cardAnim = useRef(new Animated.Value(1)).current;
 
-    const isLast = index === slides.length - 1;
+    const isPolicyStep = step === 'policy';
+    const isLastSlide = index === slides.length - 1;
+    const totalSteps = slides.length + 1;
+    const activeStep = isPolicyStep ? totalSteps : index + 1;
     const slide = useMemo(() => slides[index], [index]);
 
     useEffect(() => {
@@ -78,12 +128,19 @@ export default function OnboardingScreen() {
     }, [cardAnim, index]);
 
     const next = async () => {
-        if (!isLast) {
+        if (!isPolicyStep && !isLastSlide) {
             setIndex((v) => Math.min(v + 1, slides.length - 1));
             return;
         }
 
-        if (!acceptedPrivacy || isSaving) return;
+        if (!isPolicyStep && isLastSlide) {
+            setStep('policy');
+            return;
+        }
+
+        if (!acceptedPrivacy || isSaving) {
+            return;
+        }
 
         setIsSaving(true);
         await markCompleted();
@@ -91,6 +148,10 @@ export default function OnboardingScreen() {
     };
 
     const prev = () => {
+        if (isPolicyStep) {
+            setStep('slides');
+            return;
+        }
         setIndex((v) => Math.max(v - 1, 0));
     };
 
@@ -98,63 +159,71 @@ export default function OnboardingScreen() {
         <View style={styles.container}>
             <View style={styles.header}>
                 <Text style={styles.brand}>In-Stocker</Text>
-                <Text style={styles.progress}>Step {index + 1} of {slides.length}</Text>
+                <Text style={styles.progress}>Step {activeStep} of {totalSteps}</Text>
             </View>
 
-            <Animated.View
-                style={[
-                    styles.card,
-                    Shadow.md,
-                    {
-                        opacity: cardAnim,
-                        transform: [
-                            {
-                                translateY: cardAnim.interpolate({
-                                    inputRange: [0.96, 1],
-                                    outputRange: [6, 0],
-                                }),
-                            },
-                        ],
-                    },
-                ]}
-            >
-                <View style={styles.iconWrap}>
-                    <Ionicons name={slide.icon} size={34} color={Colors.primary} />
-                </View>
-
-                <Text style={styles.title}>{slide.title}</Text>
-                <Text style={styles.subtitle}>{slide.subtitle}</Text>
-
-                <View style={styles.bulletsWrap}>
-                    {slide.bullets.map((item) => (
-                        <View key={item} style={styles.bulletRow}>
-                            <Ionicons name="checkmark-circle" size={16} color={Colors.secondary} />
-                            <Text style={styles.bulletText}>{item}</Text>
-                        </View>
-                    ))}
-                </View>
-            </Animated.View>
-
-            <View style={styles.dotsRow}>
-                {slides.map((_, dotIndex) => (
-                    <View
-                        key={String(dotIndex)}
+            {!isPolicyStep ? (
+                <>
+                    <Animated.View
                         style={[
-                            styles.dot,
-                            dotIndex === index && styles.dotActive,
+                            styles.card,
+                            Shadow.md,
+                            {
+                                opacity: cardAnim,
+                                transform: [
+                                    {
+                                        translateY: cardAnim.interpolate({
+                                            inputRange: [0.96, 1],
+                                            outputRange: [6, 0],
+                                        }),
+                                    },
+                                ],
+                            },
                         ]}
-                    />
-                ))}
-            </View>
+                    >
+                        <View style={styles.iconWrap}>
+                            <Ionicons name={slide.icon} size={34} color={Colors.primary} />
+                        </View>
 
-            {isLast && (
+                        <Text style={styles.title}>{slide.title}</Text>
+                        <Text style={styles.subtitle}>{slide.subtitle}</Text>
+
+                        <View style={styles.bulletsWrap}>
+                            {slide.bullets.map((item) => (
+                                <View key={item} style={styles.bulletRow}>
+                                    <Ionicons name="checkmark-circle" size={16} color={Colors.secondary} />
+                                    <Text style={styles.bulletText}>{item}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </Animated.View>
+
+                    <View style={styles.dotsRow}>
+                        {slides.map((_, dotIndex) => (
+                            <View
+                                key={String(dotIndex)}
+                                style={[
+                                    styles.dot,
+                                    dotIndex === index && styles.dotActive,
+                                ]}
+                            />
+                        ))}
+                    </View>
+                </>
+            ) : (
                 <View style={[styles.privacyCard, Shadow.sm]}>
-                    <Text style={styles.privacyTitle}>Privacy Policy Confirmation</Text>
+                    <Text style={styles.privacyTitle}>Privacy Policy</Text>
+                    <Text style={styles.privacyUpdated}>Last updated: April 2026</Text>
                     <ScrollView style={styles.privacyScroll}>
-                        <Text style={styles.privacyText}>
-                            In-Stocker stores your account, inventory, and sales data to provide stock alerts and buffer recommendations.
-                            Your data is processed through Firebase services used by this app. You can request deletion by contacting support listed in the policy.
-                        </Text>
+                        {policySections.map((section) => (
+                            <View key={section.title} style={styles.policySection}>
+                                <Text style={styles.policySectionTitle}>{section.title}</Text>
+                                <Text style={styles.privacyText}>{section.body}</Text>
+                                {section.bullets?.map((item) => (
+                                    <Text key={item} style={styles.policyBullet}>• {item}</Text>
+                                ))}
+                            </View>
+                        ))}
                     </ScrollView>
 
                     <TouchableOpacity
@@ -166,7 +235,7 @@ export default function OnboardingScreen() {
                             {acceptedPrivacy && <Ionicons name="checkmark" size={14} color={Colors.white} />}
                         </View>
                         <Text style={styles.checkboxLabel}>
-                            I have read and agree to the Privacy Policy.
+                            I have read and agree to this Privacy Policy.
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -174,11 +243,11 @@ export default function OnboardingScreen() {
 
             <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.secondaryBtn, index === 0 && styles.secondaryBtnDisabled]}
-                    disabled={index === 0}
+                    style={[styles.secondaryBtn, index === 0 && !isPolicyStep && styles.secondaryBtnDisabled]}
+                    disabled={index === 0 && !isPolicyStep}
                     onPress={prev}
                 >
-                    <Text style={[styles.secondaryBtnText, index === 0 && styles.secondaryBtnTextDisabled]}>
+                    <Text style={[styles.secondaryBtnText, index === 0 && !isPolicyStep && styles.secondaryBtnTextDisabled]}>
                         Back
                     </Text>
                 </TouchableOpacity>
@@ -186,13 +255,15 @@ export default function OnboardingScreen() {
                 <TouchableOpacity
                     style={[
                         styles.primaryBtn,
-                        isLast && !acceptedPrivacy && styles.primaryBtnDisabled,
+                        isPolicyStep && !acceptedPrivacy && styles.primaryBtnDisabled,
                     ]}
                     onPress={next}
-                    disabled={isLast && !acceptedPrivacy}
+                    disabled={isPolicyStep && !acceptedPrivacy}
                 >
                     <Text style={styles.primaryBtnText}>
-                        {isLast ? (isSaving ? 'Finishing...' : 'Get Started') : 'Next'}
+                        {isPolicyStep
+                            ? (isSaving ? 'Finishing...' : 'Agree & Get Started')
+                            : (isLastSlide ? 'Review Policy' : 'Next')}
                     </Text>
                 </TouchableOpacity>
             </View>
@@ -293,13 +364,32 @@ const styles = StyleSheet.create({
         fontSize: FontSize.md,
         fontWeight: FontWeight.bold,
         color: Colors.textPrimary,
+    },
+    privacyUpdated: {
+        color: Colors.textMuted,
+        fontSize: FontSize.xs,
         marginBottom: Spacing.sm,
     },
     privacyScroll: {
-        maxHeight: 120,
+        maxHeight: 260,
         marginBottom: Spacing.sm,
     },
+    policySection: {
+        marginBottom: Spacing.md,
+    },
+    policySectionTitle: {
+        fontSize: FontSize.sm,
+        fontWeight: FontWeight.bold,
+        color: Colors.textPrimary,
+        marginBottom: 4,
+    },
     privacyText: {
+        color: Colors.textSecondary,
+        fontSize: FontSize.xs,
+        lineHeight: 18,
+    },
+    policyBullet: {
+        marginTop: 4,
         color: Colors.textSecondary,
         fontSize: FontSize.xs,
         lineHeight: 18,
