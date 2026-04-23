@@ -329,6 +329,8 @@ const styles = StyleSheet.create({
     },
     contentArea: {
         flex: 1,
+        minHeight: 0,
+        paddingBottom: 64,
     },
     brand: {
         fontSize: FontSize.lg,
@@ -402,6 +404,7 @@ const styles = StyleSheet.create({
     },
     privacyCard: {
         flex: 1,
+        minHeight: 0,
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
         borderWidth: 1,
@@ -472,7 +475,10 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
     },
     footer: {
-        marginTop: Spacing.sm,
+        position: 'absolute',
+        left: Spacing.lg,
+        right: Spacing.lg,
+        bottom: Spacing.xl,
         flexDirection: 'row',
         gap: Spacing.sm,
     },
