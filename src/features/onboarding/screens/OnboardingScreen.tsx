@@ -282,37 +282,25 @@ export default function OnboardingScreen() {
                                 </Text>
                             </TouchableOpacity>
                         </View>
-
-                        <View style={styles.footer}>
-                            <TouchableOpacity style={styles.secondaryBtn} onPress={prev}>
-                                <Text style={styles.secondaryBtnText}>Back</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[
-                                    styles.primaryBtn,
-                                    !acceptedPrivacy && styles.primaryBtnDisabled,
-                                ]}
-                                onPress={next}
-                                disabled={!acceptedPrivacy}
-                            >
-                                <Text style={styles.primaryBtnText}>
-                                    {isSaving ? 'Finishing...' : 'Agree & Get Started'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
                     </ScrollView>
                 )}
             </View>
 
-            {!isPolicyStep && (
-                <View style={styles.footer}>
+            <View style={styles.footer}>
                 <TouchableOpacity
-                    style={[styles.secondaryBtn, index === 0 && !isPolicyStep && styles.secondaryBtnDisabled]}
+                    style={[
+                        styles.secondaryBtn,
+                        index === 0 && !isPolicyStep && styles.secondaryBtnDisabled,
+                    ]}
                     disabled={index === 0 && !isPolicyStep}
                     onPress={prev}
                 >
-                    <Text style={[styles.secondaryBtnText, index === 0 && !isPolicyStep && styles.secondaryBtnTextDisabled]}>
+                    <Text
+                        style={[
+                            styles.secondaryBtnText,
+                            index === 0 && !isPolicyStep && styles.secondaryBtnTextDisabled,
+                        ]}
+                    >
                         Back
                     </Text>
                 </TouchableOpacity>
@@ -331,8 +319,7 @@ export default function OnboardingScreen() {
                             : (isLastSlide ? 'Review Policy' : 'Next')}
                     </Text>
                 </TouchableOpacity>
-                </View>
-            )}
+            </View>
         </View>
     );
 }
@@ -356,7 +343,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     policyStepScrollContent: {
-        paddingBottom: Spacing.sm,
+        paddingBottom: Spacing.md,
     },
     brand: {
         fontSize: FontSize.lg,
