@@ -6,6 +6,7 @@ import {
     StyleSheet,
     TouchableOpacity,
     ScrollView,
+    Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -331,6 +332,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingTop: Spacing.xxl,
         paddingBottom: Spacing.xl,
+        // On web, overflow:hidden ensures the container doesn't expand beyond
+        // the viewport, which is required for child ScrollViews to actually scroll.
+        ...(Platform.OS === 'web' ? { overflow: 'hidden' as const } : {}),
     },
     header: {
         marginBottom: Spacing.md,
@@ -338,6 +342,8 @@ const styles = StyleSheet.create({
     contentArea: {
         flex: 1,
         minHeight: 0,
+        // Same fix: clip this container so the ScrollView has a bounded height.
+        ...(Platform.OS === 'web' ? { overflow: 'hidden' as const } : {}),
     },
     policyStepScroll: {
         flex: 1,
