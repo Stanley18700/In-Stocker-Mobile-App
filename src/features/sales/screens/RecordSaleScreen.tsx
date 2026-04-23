@@ -26,7 +26,7 @@ type ModalState = 'none' | 'confirm' | 'success' | 'error';
 
 export default function RecordSaleScreen({ navigation }: Props) {
     const { products } = useInventory();
-    const { cart, cartTotal, cartItemCount, addProductToCart, removeFromCart, checkout } = useSales();
+    const { cart, cartTotal, cartItemCount, addProductToCart, updateCartItemQty, removeFromCart, checkout } = useSales();
     const { currency } = usePreferencesStore();
     const [query, setQuery] = useState('');
     const [modal, setModal] = useState<ModalState>('none');
@@ -69,7 +69,16 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 </View>
                 <View style={styles.actions}>
                     {inCart && (
-                        <TouchableOpacity style={styles.removeBtn} onPress={() => removeFromCart(item.id)}>
+                        <TouchableOpacity
+                            style={styles.removeBtn}
+                            onPress={() => {
+                                if (inCart.quantity > 1) {
+                                    updateCartItemQty(item.id, inCart.quantity - 1);
+                                } else {
+                                    removeFromCart(item.id);
+                                }
+                            }}
+                        >
                             <Ionicons name="remove" size={18} color={Colors.danger} />
                         </TouchableOpacity>
                     )}
