@@ -332,9 +332,12 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.lg,
         paddingTop: Spacing.xxl,
         paddingBottom: Spacing.xl,
-        // On web, overflow:hidden ensures the container doesn't expand beyond
-        // the viewport, which is required for child ScrollViews to actually scroll.
-        ...(Platform.OS === 'web' ? { overflow: 'hidden' as const } : {}),
+        // On web: pin the container to 100vh so the flex chain has a concrete
+        // bounded height — without this the browser lets it grow infinitely
+        // and the ScrollView never actually scrolls.
+        ...(Platform.OS === 'web'
+            ? { height: '100vh' as any, overflow: 'hidden' as const }
+            : {}),
     },
     header: {
         marginBottom: Spacing.md,
@@ -342,7 +345,6 @@ const styles = StyleSheet.create({
     contentArea: {
         flex: 1,
         minHeight: 0,
-        // Same fix: clip this container so the ScrollView has a bounded height.
         ...(Platform.OS === 'web' ? { overflow: 'hidden' as const } : {}),
     },
     policyStepScroll: {
