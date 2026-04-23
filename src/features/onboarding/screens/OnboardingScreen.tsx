@@ -201,84 +201,90 @@ export default function OnboardingScreen() {
                 <Text style={styles.progress}>Step {activeStep} of {totalSteps}</Text>
             </View>
 
-            {!isPolicyStep ? (
-                <>
-                    <Animated.View
-                        style={[
-                            styles.card,
-                            Shadow.md,
-                            {
-                                opacity: cardAnim,
-                                transform: [
-                                    {
-                                        translateY: cardAnim.interpolate({
-                                            inputRange: [0.96, 1],
-                                            outputRange: [6, 0],
-                                        }),
-                                    },
-                                ],
-                            },
-                        ]}
-                    >
-                        <View style={styles.iconWrap}>
-                            <Ionicons name={slide.icon} size={34} color={Colors.primary} />
-                        </View>
+            <View style={styles.contentArea}>
+                {!isPolicyStep ? (
+                    <>
+                        <Animated.View
+                            style={[
+                                styles.card,
+                                Shadow.md,
+                                {
+                                    opacity: cardAnim,
+                                    transform: [
+                                        {
+                                            translateY: cardAnim.interpolate({
+                                                inputRange: [0.96, 1],
+                                                outputRange: [6, 0],
+                                            }),
+                                        },
+                                    ],
+                                },
+                            ]}
+                        >
+                            <View style={styles.iconWrap}>
+                                <Ionicons name={slide.icon} size={34} color={Colors.primary} />
+                            </View>
 
-                        <Text style={styles.title}>{slide.title}</Text>
-                        <Text style={styles.subtitle}>{slide.subtitle}</Text>
+                            <Text style={styles.title}>{slide.title}</Text>
+                            <Text style={styles.subtitle}>{slide.subtitle}</Text>
 
-                        <View style={styles.bulletsWrap}>
-                            {slide.bullets.map((item) => (
-                                <View key={item} style={styles.bulletRow}>
-                                    <Ionicons name="checkmark-circle" size={16} color={Colors.secondary} />
-                                    <Text style={styles.bulletText}>{item}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </Animated.View>
-
-                    <View style={styles.dotsRow}>
-                        {slides.map((_, dotIndex) => (
-                            <View
-                                key={String(dotIndex)}
-                                style={[
-                                    styles.dot,
-                                    dotIndex === index && styles.dotActive,
-                                ]}
-                            />
-                        ))}
-                    </View>
-                </>
-            ) : (
-                <View style={[styles.privacyCard, Shadow.sm]}>
-                    <Text style={styles.privacyTitle}>Privacy Policy</Text>
-                    <Text style={styles.privacyUpdated}>Last updated: April 22, 2026</Text>
-                    <ScrollView style={styles.privacyScroll}>
-                        {policySections.map((section) => (
-                            <View key={section.title} style={styles.policySection}>
-                                <Text style={styles.policySectionTitle}>{section.title}</Text>
-                                <Text style={styles.privacyText}>{section.body}</Text>
-                                {section.bullets?.map((item) => (
-                                    <Text key={item} style={styles.policyBullet}>• {item}</Text>
+                            <View style={styles.bulletsWrap}>
+                                {slide.bullets.map((item) => (
+                                    <View key={item} style={styles.bulletRow}>
+                                        <Ionicons name="checkmark-circle" size={16} color={Colors.secondary} />
+                                        <Text style={styles.bulletText}>{item}</Text>
+                                    </View>
                                 ))}
                             </View>
-                        ))}
-                    </ScrollView>
+                        </Animated.View>
 
-                    <TouchableOpacity
-                        style={styles.checkboxRow}
-                        onPress={() => setAcceptedPrivacy((v) => !v)}
-                        activeOpacity={0.8}
-                    >
-                        <View style={[styles.checkbox, acceptedPrivacy && styles.checkboxChecked]}>
-                            {acceptedPrivacy && <Ionicons name="checkmark" size={14} color={Colors.white} />}
+                        <View style={styles.dotsRow}>
+                            {slides.map((_, dotIndex) => (
+                                <View
+                                    key={String(dotIndex)}
+                                    style={[
+                                        styles.dot,
+                                        dotIndex === index && styles.dotActive,
+                                    ]}
+                                />
+                            ))}
                         </View>
-                        <Text style={styles.checkboxLabel}>
-                            I have read and agree to this Privacy Policy.
-                        </Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+                    </>
+                ) : (
+                    <View style={[styles.privacyCard, Shadow.sm]}>
+                        <Text style={styles.privacyTitle}>Privacy Policy</Text>
+                        <Text style={styles.privacyUpdated}>Last updated: April 22, 2026</Text>
+                        <ScrollView
+                            style={styles.privacyScroll}
+                            contentContainerStyle={styles.privacyScrollContent}
+                            showsVerticalScrollIndicator
+                        >
+                            {policySections.map((section) => (
+                                <View key={section.title} style={styles.policySection}>
+                                    <Text style={styles.policySectionTitle}>{section.title}</Text>
+                                    <Text style={styles.privacyText}>{section.body}</Text>
+                                    {section.bullets?.map((item) => (
+                                        <Text key={item} style={styles.policyBullet}>• {item}</Text>
+                                    ))}
+                                </View>
+                            ))}
+                        </ScrollView>
+
+                        <TouchableOpacity
+                            style={styles.checkboxRow}
+                            onPress={() => setAcceptedPrivacy((v) => !v)}
+                            activeOpacity={0.8}
+                        >
+                            <View style={[styles.checkbox, acceptedPrivacy && styles.checkboxChecked]}>
+                                {acceptedPrivacy && <Ionicons name="checkmark" size={14} color={Colors.white} />}
+                            </View>
+                            <Text style={styles.checkboxLabel}>
+                                I have read and agree to this Privacy Policy.
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                )}
+            </View>
 
             <View style={styles.footer}>
                 <TouchableOpacity
@@ -320,6 +326,9 @@ const styles = StyleSheet.create({
     },
     header: {
         marginBottom: Spacing.md,
+    },
+    contentArea: {
+        flex: 1,
     },
     brand: {
         fontSize: FontSize.lg,
@@ -415,6 +424,9 @@ const styles = StyleSheet.create({
         minHeight: 0,
         marginBottom: Spacing.sm,
     },
+    privacyScrollContent: {
+        paddingBottom: Spacing.sm,
+    },
     policySection: {
         marginBottom: Spacing.md,
     },
@@ -460,7 +472,7 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
     },
     footer: {
-        marginTop: 'auto',
+        marginTop: Spacing.sm,
         flexDirection: 'row',
         gap: Spacing.sm,
     },
