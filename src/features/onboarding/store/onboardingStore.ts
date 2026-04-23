@@ -8,6 +8,7 @@ interface OnboardingState {
     hydrated: boolean;
     hydrate: () => Promise<void>;
     markCompleted: () => Promise<void>;
+    resetProgress: () => Promise<void>;
 }
 
 export const useOnboardingStore = create<OnboardingState>((set) => ({
@@ -29,6 +30,15 @@ export const useOnboardingStore = create<OnboardingState>((set) => ({
             await AsyncStorage.setItem(ONBOARDING_KEY, 'true');
         } catch {
             // Non-blocking: user can continue even if persistence fails.
+        }
+    },
+
+    resetProgress: async () => {
+        set({ completed: false, hydrated: true });
+        try {
+            await AsyncStorage.removeItem(ONBOARDING_KEY);
+        } catch {
+            // Non-blocking: onboarding can still be shown this session.
         }
     },
 }));

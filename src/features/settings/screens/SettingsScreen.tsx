@@ -8,6 +8,7 @@ import { usePreferencesStore } from '../store/preferencesStore';
 import { APP_CONFIG } from '../../../constants/config';
 import AppModal from '../../../shared/components/AppModal';
 import { Ionicons } from '@expo/vector-icons';
+import { useOnboardingStore } from '../../onboarding/store/onboardingStore';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'SettingsList'>;
@@ -23,6 +24,7 @@ interface SettingsRow {
 export default function SettingsScreen({ navigation }: Props) {
     const { user, logout } = useAuthStore();
     const { threshold, currency } = usePreferencesStore();
+    const resetOnboardingProgress = useOnboardingStore((s) => s.resetProgress);
     const [showSignOutModal, setShowSignOutModal] = useState(false);
 
     const rows: SettingsRow[] = [
@@ -48,6 +50,13 @@ export default function SettingsScreen({ navigation }: Props) {
             iconName: 'document-text-outline',
             label: 'Privacy Policy',
             onPress: () => navigation.navigate('PrivacyPolicy'),
+        },
+        {
+            iconName: 'refresh-circle-outline',
+            label: 'View Onboarding Again',
+            onPress: () => {
+                void resetOnboardingProgress();
+            },
         },
     ];
 
