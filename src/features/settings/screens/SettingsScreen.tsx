@@ -44,6 +44,11 @@ export default function SettingsScreen({ navigation }: Props) {
             value: currency,
             onPress: () => navigation.navigate('EditPreferences'),
         },
+        {
+            iconName: 'document-text-outline',
+            label: 'Privacy Policy',
+            onPress: () => navigation.navigate('PrivacyPolicy'),
+        },
     ];
 
     return (

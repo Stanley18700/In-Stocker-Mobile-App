@@ -35,7 +35,7 @@ export function useSales() {
                 setLoading(false);
             }
         },
-        [setLoading, setError, setSales]
+        [user?.id, setLoading, setError, setSales]
     );
 
     const checkout = useCallback(async () => {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, FlatList, StyleSheet, RefreshControl, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -13,10 +13,6 @@ export default function AlertsScreen() {
     const { lowStockProducts, isLoading, fetchLowStockAlerts } = useAlerts();
     const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'Alerts'>>();
     const { setSelectedProduct } = useInventory();
-
-    useEffect(() => {
-        fetchLowStockAlerts();
-    }, []);
 
     const renderItem = ({ item }: { item: Product }) => {
         const urgency = item.quantity === 0 ? 'out' : item.quantity <= Math.floor(item.lowStockThreshold / 2) ? 'critical' : 'low';

@@ -17,11 +17,14 @@ import {
     initializeLocalNotifications,
     notifyStockThresholdChanges,
 } from '../../features/alerts/services/localNotificationsService';
+import OnboardingScreen from '../../features/onboarding/screens/OnboardingScreen';
+import { useOnboardingStore } from '../../features/onboarding/store/onboardingStore';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export default function AppNavigator() {
     const { user, isLoading, initializeAuth } = useAuthStore();
+    const { completed: onboardingCompleted, hydrated: onboardingHydrated, hydrate: hydrateOnboarding } = useOnboardingStore();
     const previousLowMapRef = React.useRef<Map<string, boolean>>(new Map());
     const previousOutMapRef = React.useRef<Map<string, boolean>>(new Map());
     const hasPrimedInventoryRef = React.useRef(false);
@@ -29,6 +32,7 @@ export default function AppNavigator() {
     // Restore persisted session and preferences on app startup
     useEffect(() => {
         initializeAuth();
+        void hydrateOnboarding();
     }, []);
 
     useEffect(() => {
@@ -116,7 +120,7 @@ export default function AppNavigator() {
     }, [user?.id]);
 
     // Splash / loading state while session is being restored
-    if (isLoading) {
+    if (isLoading || !onboardingHydrated) {
         return (
             <View style={styles.loader}>
                 <ActivityIndicator size="large" color={Colors.primary} />
@@ -127,7 +131,9 @@ export default function AppNavigator() {
     return (
         <NavigationContainer>
             <Stack.Navigator screenOptions={{ headerShown: false }}>
-                {user ? (
+                {!onboardingCompleted ? (
+                    <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+                ) : user ? (
                     // Authenticated — show main app
                     <Stack.Screen name="Main" component={MainNavigator} />
                 ) : (

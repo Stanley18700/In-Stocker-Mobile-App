@@ -20,7 +20,13 @@ export const useInventoryStore = create<InventoryState>((set) => ({
     selectedProduct: null,
     isLoading: false,
     error: null,
-    setProducts: (products) => set({ products }),
+    setProducts: (products) =>
+        set((state) => ({
+            products,
+            selectedProduct: state.selectedProduct
+                ? products.find((p) => p.id === state.selectedProduct?.id) ?? null
+                : null,
+        })),
     addProduct: (product) =>
         set((state) => ({ products: [product, ...state.products] })),
     updateProduct: (product) =>

@@ -5,6 +5,7 @@ import SettingsScreen from '../../../features/settings/screens/SettingsScreen';
 import ProfileScreen from '../../../features/auth/screens/ProfileScreen';
 import EditProfileScreen from '../../../features/settings/screens/EditProfileScreen';
 import EditPreferencesScreen from '../../../features/settings/screens/EditPreferencesScreen';
+import PrivacyPolicyScreen from '../../../features/settings/screens/PrivacyPolicyScreen';
 import { Colors } from '../../theme';
 import BackButton from '../../../shared/components/BackButton';
 
@@ -50,6 +51,16 @@ export default function SettingsStack() {
                 component={EditPreferencesScreen}
                 options={({ navigation }) => ({
                     title: 'Preferences',
+                    headerLeft: () => (
+                        <BackButton onPress={() => navigation.goBack()} />
+                    ),
+                })}
+            />
+            <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
+                options={({ navigation }) => ({
+                    title: 'Privacy Policy',
                     headerLeft: () => (
                         <BackButton onPress={() => navigation.goBack()} />
                     ),

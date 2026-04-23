@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { View, Text, SectionList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSales } from '../hooks/useSales';
@@ -46,10 +46,6 @@ function groupByDate(sales: Sale[]): { title: string; data: Sale[] }[] {
 
 export default function SalesHistoryScreen({ navigation }: Props) {
     const { sales, isLoading, fetchSalesHistory } = useSales();
-
-    useEffect(() => {
-        fetchSalesHistory();
-    }, []);
 
     const sections = groupByDate(sales);
 

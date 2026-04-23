@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -121,10 +121,6 @@ export default function HomeScreen() {
     const navigation = useNavigation<any>();
     const { user, stats, recentSales, refresh } = useDashboard();
     const [refreshing, setRefreshing] = React.useState(false);
-
-    useEffect(() => {
-        refresh();
-    }, []);
 
     const handleRefresh = async () => {
         setRefreshing(true);

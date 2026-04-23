@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -32,10 +32,6 @@ type Props = {
 export default function InventoryListScreen({ navigation }: Props) {
     const { products, isLoading, fetchProducts, setSelectedProduct } = useInventory();
     const [query, setQuery] = useState('');
-
-    useEffect(() => {
-        fetchProducts();
-    }, []);
 
     const filtered = query.trim()
         ? products.filter(

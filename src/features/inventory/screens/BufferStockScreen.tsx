@@ -3,7 +3,7 @@
 // "When and how much buffer stock should I buy?"
 // ---------------------------------------------------------------------------
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import {
     View,
     Text,
@@ -19,6 +19,8 @@ import { useSales } from '../../sales/hooks/useSales';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../../core/theme';
 import { formatCurrency } from '../../../shared/utils/formatters';
 import { usePreferencesStore } from '../../settings/store/preferencesStore';
+import { StackNavigationProp } from '@react-navigation/stack';
+import { InventoryStackParamList } from '../../../core/navigation/types';
 
 // ── Status colour helpers ─────────────────────────────────────────────────────
 
@@ -40,7 +42,15 @@ function statusBg(rec: BufferRecommendation): string {
 
 // ── RecommendationCard ────────────────────────────────────────────────────────
 
-function RecommendationCard({ rec, currency }: { rec: BufferRecommendation; currency: string }) {
+function RecommendationCard({
+    rec,
+    currency,
+    onPress,
+}: {
+    rec: BufferRecommendation;
+    currency: string;
+    onPress: () => void;
+}) {
     const badgeColor = statusColor(rec);
     const badgeBg    = statusBg(rec);
 
@@ -54,7 +64,11 @@ function RecommendationCard({ rec, currency }: { rec: BufferRecommendation; curr
             : `~${Math.floor(rec.daysUntilStockout)} day${Math.floor(rec.daysUntilStockout) !== 1 ? 's' : ''} remaining`;
 
     return (
-        <View style={[styles.card, Shadow.sm, rec.shouldReorderNow && styles.cardUrgent]}>
+        <TouchableOpacity
+            style={[styles.card, Shadow.sm, rec.shouldReorderNow && styles.cardUrgent]}
+            onPress={onPress}
+            activeOpacity={0.85}
+        >
             {/* Row 1: Product name + status badge */}
             <View style={styles.cardTop}>
                 <Text style={styles.productName} numberOfLines={1}>
@@ -99,14 +113,18 @@ function RecommendationCard({ rec, currency }: { rec: BufferRecommendation; curr
                     </Text>
                 )}
             </View>
-        </View>
+        </TouchableOpacity>
     );
 }
 
 // ── BufferStockScreen ──────────────────────────────────────────────────────────
 
-export default function BufferStockScreen() {
-    const { fetchProducts, isLoading: inventoryLoading } = useInventory();
+type Props = {
+    navigation: StackNavigationProp<InventoryStackParamList, 'BufferStock'>;
+};
+
+export default function BufferStockScreen({ navigation }: Props) {
+    const { fetchProducts, isLoading: inventoryLoading, setSelectedProduct } = useInventory();
     const { fetchSalesHistory, isLoading: salesLoading } = useSales();
     const { currency } = usePreferencesStore();
     const recommendations = useBufferStock();
@@ -116,10 +134,6 @@ export default function BufferStockScreen() {
     const refresh = async () => {
         await Promise.all([fetchProducts(), fetchSalesHistory()]);
     };
-
-    useEffect(() => {
-        refresh();
-    }, []);
 
     // Sort: urgent first, then by fewest days remaining
     const sorted = [...recommendations].sort((a, b) => {
@@ -160,7 +174,14 @@ export default function BufferStockScreen() {
                 data={sorted}
                 keyExtractor={(item) => item.product.id}
                 renderItem={({ item }) => (
-                    <RecommendationCard rec={item} currency={currency} />
+                    <RecommendationCard
+                        rec={item}
+                        currency={currency}
+                        onPress={() => {
+                            setSelectedProduct(item.product);
+                            navigation.navigate('EditProduct', { productId: item.product.id });
+                        }}
+                    />
                 )}
                 contentContainerStyle={styles.list}
                 refreshControl={

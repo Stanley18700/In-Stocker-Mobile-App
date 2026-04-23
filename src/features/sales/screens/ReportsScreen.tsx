@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -26,16 +26,11 @@ const PERIODS: { label: string; value: Period }[] = [
 
 export default function ReportsScreen() {
     const { width } = useWindowDimensions();
-    const { sales, isLoading, fetchSalesHistory } = useSales();
+    const { isLoading } = useSales();
     const { currency } = usePreferencesStore();
     const [period, setPeriod] = useState<Period>(7);
 
     const report = useReports(period);
-
-    useEffect(() => {
-        // Ensure sales data is loaded
-        if (sales.length === 0) fetchSalesHistory();
-    }, []);
 
     const chartWidth = width - Spacing.lg * 2 - 40;
 

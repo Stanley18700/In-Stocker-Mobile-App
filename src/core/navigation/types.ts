@@ -7,6 +7,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 
 // Root
 export type RootStackParamList = {
+    Onboarding: undefined;
     Auth: undefined;
     Main: undefined;
 };
@@ -49,4 +50,5 @@ export type SettingsStackParamList = {
     Profile: undefined;
     EditProfile: undefined;
     EditPreferences: undefined;
+    PrivacyPolicy: undefined;
 };
