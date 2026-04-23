@@ -66,40 +66,79 @@ const slides: Slide[] = [
 
 const policySections: PolicySection[] = [
     {
-        title: 'What data we collect',
-        body: 'In-Stocker collects account, profile, inventory, and sales data that you enter so core features can work correctly.',
+        title: '1) Who we are',
+        body: 'This Privacy Policy describes how Nyan SInt Zaw ("we", "us") collects, uses, and shares information when you use the In-Stocker mobile application (the "App"). Contact: 6731503077@lamduan.mfu.ac.th',
+    },
+    {
+        title: '2) What the App does',
+        body: 'In-Stocker is an inventory and sales tracking app. It helps you:',
         bullets: [
-            'Account info: email and password (handled securely through Firebase Authentication)',
-            'Profile info: shop name and owner name',
-            'Inventory data: products, SKU/barcode, quantities, thresholds, and prices',
-            'Sales data: sold items, quantity, totals, and timestamps',
+            'Create and manage product records (name, SKU/barcode, quantity, price, category, low-stock threshold).',
+            'Record sales and view sales history and reports.',
+            'Receive low-stock views/alerts inside the App.',
+            'Scan barcodes/QR codes using your device camera (optional; you can also enter SKUs manually).',
         ],
     },
     {
-        title: 'How we use your data',
-        body: 'Your data is used only to provide and improve inventory and sales management in the app.',
+        title: '3.1 Information you provide',
+        body: 'We collect the information needed to provide app features:',
+        bullets: [
+            'Account information: email address and password (for sign-in). Passwords are handled by our authentication provider and are not stored in plain text by us.',
+            'Profile information: shop name and owner name (optional fields used to personalize your profile).',
+            'Inventory data: product details such as product name, SKU/barcode, quantity, price, category, and low-stock threshold.',
+            'Sales data: items sold, quantities, unit prices, totals, and timestamps.',
+        ],
+    },
+    {
+        title: '3.2 Device features and 3.3 local storage',
+        body: 'Camera access is optional and used only for barcode/QR scanning. The App does not require access to contacts, SMS, call logs, or precise location. Preferences such as currency symbol and default threshold are stored locally on your device.',
+    },
+    {
+        title: '4) How we use information',
+        body: 'We use your data to provide secure core app functionality and synchronization.',
         bullets: [
             'Display stock status and low-stock alerts',
             'Generate buffer stock recommendations from sales history',
             'Create sales history views and reports',
             'Sync your records across sessions when signed in',
+            'Maintain app security, prevent abuse, and troubleshoot technical issues.',
         ],
     },
     {
-        title: 'Third-party services',
-        body: 'We use Firebase services (Google) for authentication and cloud database storage. We do not sell your personal information.',
+        title: '5) Third-party services',
+        body: 'We use Firebase (Google) for authentication and cloud database storage (Firebase Authentication and Cloud Firestore). Firebase privacy: https://firebase.google.com/support/privacy',
     },
     {
-        title: 'Your choices and rights',
-        body: 'You can request account/data deletion and manage device permissions at any time.',
+        title: '6) Sharing of information',
+        body: 'We do not sell your personal information. We share information only with service providers (e.g., Firebase), for legal/safety reasons, or during business changes such as mergers/acquisitions where legally required.',
+    },
+    {
+        title: '7) Data retention',
+        body: 'We retain account, profile, inventory, and sales data as long as needed to provide the App and while you keep your account. You may request deletion at 6731503077@lamduan.mfu.ac.th.',
+    },
+    {
+        title: '8) Security',
+        body: 'We use reasonable administrative, technical, and physical safeguards designed to protect your information. No method of transmission or storage is 100% secure.',
+    },
+    {
+        title: '9) Children’s privacy',
+        body: 'The App is not directed to children under 13 (or local legal age), and we do not knowingly collect personal information from children.',
+    },
+    {
+        title: '10) Your choices and rights',
+        body: 'You can manage your data and permissions at any time.',
         bullets: [
-            'Camera access is optional and only used for barcode scanning',
-            'You can still manually enter SKU codes if camera permission is denied',
-            'Contact support for data deletion requests',
+            'Access/update: you can update certain profile information within the App.',
+            'Delete: you can request account/data deletion via 6731503077@lamduan.mfu.ac.th.',
+            'Device permissions: you can control camera permission from your device settings. If denied, you can still enter SKUs manually.',
         ],
     },
     {
-        title: 'Contact',
+        title: '11) Changes to this policy',
+        body: 'We may update this Privacy Policy from time to time and will post the updated version with a new "Last updated" date.',
+    },
+    {
+        title: '12) Contact us',
         body: 'For privacy questions or requests, contact: 6731503077@lamduan.mfu.ac.th',
     },
 ];
@@ -213,7 +252,7 @@ export default function OnboardingScreen() {
             ) : (
                 <View style={[styles.privacyCard, Shadow.sm]}>
                     <Text style={styles.privacyTitle}>Privacy Policy</Text>
-                    <Text style={styles.privacyUpdated}>Last updated: April 2026</Text>
+                    <Text style={styles.privacyUpdated}>Last updated: April 22, 2026</Text>
                     <ScrollView style={styles.privacyScroll}>
                         {policySections.map((section) => (
                             <View key={section.title} style={styles.policySection}>
@@ -353,6 +392,7 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
     },
     privacyCard: {
+        flex: 1,
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
         borderWidth: 1,
@@ -371,7 +411,8 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.sm,
     },
     privacyScroll: {
-        maxHeight: 260,
+        flex: 1,
+        minHeight: 0,
         marginBottom: Spacing.sm,
     },
     policySection: {

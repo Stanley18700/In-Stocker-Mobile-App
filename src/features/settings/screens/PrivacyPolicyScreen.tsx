@@ -16,7 +16,7 @@ import {
     Spacing,
 } from '../../../core/theme';
 
-const PRIVACY_POLICY_URL = 'https://in-stocker-d26b7.web.app/privacy-policy.html';
+const PRIVACY_POLICY_URL = 'https://silly-paprenjak-187179.netlify.app/';
 
 export default function PrivacyPolicyScreen() {
     const openFullPolicy = async () => {
