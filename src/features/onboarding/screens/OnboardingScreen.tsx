@@ -251,14 +251,14 @@ export default function OnboardingScreen() {
                         </View>
                     </>
                 ) : (
-                    <View style={[styles.privacyCard, Shadow.sm]}>
-                        <Text style={styles.privacyTitle}>Privacy Policy</Text>
-                        <Text style={styles.privacyUpdated}>Last updated: April 22, 2026</Text>
-                        <ScrollView
-                            style={styles.privacyScroll}
-                            contentContainerStyle={styles.privacyScrollContent}
-                            showsVerticalScrollIndicator
-                        >
+                    <ScrollView
+                        style={styles.policyStepScroll}
+                        contentContainerStyle={styles.policyStepScrollContent}
+                        showsVerticalScrollIndicator
+                    >
+                        <View style={[styles.privacyCard, Shadow.sm]}>
+                            <Text style={styles.privacyTitle}>Privacy Policy</Text>
+                            <Text style={styles.privacyUpdated}>Last updated: April 22, 2026</Text>
                             {policySections.map((section) => (
                                 <View key={section.title} style={styles.policySection}>
                                     <Text style={styles.policySectionTitle}>{section.title}</Text>
@@ -268,25 +268,45 @@ export default function OnboardingScreen() {
                                     ))}
                                 </View>
                             ))}
-                        </ScrollView>
 
-                        <TouchableOpacity
-                            style={styles.checkboxRow}
-                            onPress={() => setAcceptedPrivacy((v) => !v)}
-                            activeOpacity={0.8}
-                        >
-                            <View style={[styles.checkbox, acceptedPrivacy && styles.checkboxChecked]}>
-                                {acceptedPrivacy && <Ionicons name="checkmark" size={14} color={Colors.white} />}
-                            </View>
-                            <Text style={styles.checkboxLabel}>
-                                I have read and agree to this Privacy Policy.
-                            </Text>
-                        </TouchableOpacity>
-                    </View>
+                            <TouchableOpacity
+                                style={styles.checkboxRow}
+                                onPress={() => setAcceptedPrivacy((v) => !v)}
+                                activeOpacity={0.8}
+                            >
+                                <View style={[styles.checkbox, acceptedPrivacy && styles.checkboxChecked]}>
+                                    {acceptedPrivacy && <Ionicons name="checkmark" size={14} color={Colors.white} />}
+                                </View>
+                                <Text style={styles.checkboxLabel}>
+                                    I have read and agree to this Privacy Policy.
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View style={styles.footer}>
+                            <TouchableOpacity style={styles.secondaryBtn} onPress={prev}>
+                                <Text style={styles.secondaryBtnText}>Back</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[
+                                    styles.primaryBtn,
+                                    !acceptedPrivacy && styles.primaryBtnDisabled,
+                                ]}
+                                onPress={next}
+                                disabled={!acceptedPrivacy}
+                            >
+                                <Text style={styles.primaryBtnText}>
+                                    {isSaving ? 'Finishing...' : 'Agree & Get Started'}
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                    </ScrollView>
                 )}
             </View>
 
-            <View style={styles.footer}>
+            {!isPolicyStep && (
+                <View style={styles.footer}>
                 <TouchableOpacity
                     style={[styles.secondaryBtn, index === 0 && !isPolicyStep && styles.secondaryBtnDisabled]}
                     disabled={index === 0 && !isPolicyStep}
@@ -311,7 +331,8 @@ export default function OnboardingScreen() {
                             : (isLastSlide ? 'Review Policy' : 'Next')}
                     </Text>
                 </TouchableOpacity>
-            </View>
+                </View>
+            )}
         </View>
     );
 }
@@ -330,7 +351,12 @@ const styles = StyleSheet.create({
     contentArea: {
         flex: 1,
         minHeight: 0,
-        paddingBottom: 64,
+    },
+    policyStepScroll: {
+        flex: 1,
+    },
+    policyStepScrollContent: {
+        paddingBottom: Spacing.sm,
     },
     brand: {
         fontSize: FontSize.lg,
@@ -403,8 +429,6 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
     },
     privacyCard: {
-        flex: 1,
-        minHeight: 0,
         backgroundColor: Colors.surface,
         borderRadius: BorderRadius.lg,
         borderWidth: 1,
@@ -421,14 +445,6 @@ const styles = StyleSheet.create({
         color: Colors.textMuted,
         fontSize: FontSize.xs,
         marginBottom: Spacing.sm,
-    },
-    privacyScroll: {
-        flex: 1,
-        minHeight: 0,
-        marginBottom: Spacing.sm,
-    },
-    privacyScrollContent: {
-        paddingBottom: Spacing.sm,
     },
     policySection: {
         marginBottom: Spacing.md,
@@ -475,10 +491,7 @@ const styles = StyleSheet.create({
         fontSize: FontSize.sm,
     },
     footer: {
-        position: 'absolute',
-        left: Spacing.lg,
-        right: Spacing.lg,
-        bottom: Spacing.xl,
+        marginTop: Spacing.sm,
         flexDirection: 'row',
         gap: Spacing.sm,
     },
