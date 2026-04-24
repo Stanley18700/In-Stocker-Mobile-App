@@ -67,7 +67,7 @@ export default function RegisterScreen() {
     return (
         <KeyboardAvoidingView
             style={styles.flex}
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
             <ScrollView
                 contentContainerStyle={styles.container}
@@ -142,9 +142,9 @@ const styles = StyleSheet.create({
     },
     container: {
         flexGrow: 1,
-        justifyContent: 'center',
         paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.xxl,
+        paddingTop: Spacing.xl,
+        paddingBottom: Spacing.xxl,
     },
     logo: { alignItems: 'center', marginBottom: Spacing.sm },
     title: {
