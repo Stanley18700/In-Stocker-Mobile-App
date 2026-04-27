@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { AuthStackParamList } from '../../../core/navigation/types';
 
-function parseFirebaseError(code: string): string {
+function parseFirebaseError(code: string, fallbackMessage?: string): string {
     switch (code) {
         case 'auth/email-already-in-use': return 'An account with this email already exists.';
         case 'auth/invalid-email': return 'Please enter a valid email address.';
@@ -26,7 +26,9 @@ function parseFirebaseError(code: string): string {
         case 'auth/too-many-requests': return 'Too many attempts. Please try again later.';
         case 'auth/configuration-not-found':
         case 'auth/operation-not-allowed': return 'Email/Password sign-in is not enabled. Please contact support.';
-        default: return 'Registration failed. Please try again.';
+        case 'permission-denied': return 'Cannot save profile to database. Check Firestore rules for /users/{uid}.';
+        case 'unavailable': return 'Database is temporarily unavailable. Please try again.';
+        default: return fallbackMessage || 'Registration failed. Please try again.';
     }
 }
 
@@ -60,14 +62,15 @@ export default function RegisterScreen() {
             await signUp(email.trim(), password, shopName.trim(), ownerName.trim());
         } catch (e: any) {
             const code = e?.code ?? '';
-            setError(parseFirebaseError(code));
+            const message = parseFirebaseError(code, e?.message);
+            setError(message);
         }
     };
 
     return (
         <KeyboardAvoidingView
             style={styles.flex}
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             <ScrollView
                 contentContainerStyle={styles.container}
@@ -142,9 +145,9 @@ const styles = StyleSheet.create({
     },
     container: {
         flexGrow: 1,
+        justifyContent: 'center',
         paddingHorizontal: Spacing.lg,
-        paddingTop: Spacing.xl,
-        paddingBottom: Spacing.xxl,
+        paddingVertical: Spacing.xxl,
     },
     logo: { alignItems: 'center', marginBottom: Spacing.sm },
     title: {

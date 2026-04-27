@@ -1,4 +1,4 @@
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, deleteUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../../../lib/database/firebaseConfig';
 import { User } from '../../../shared/types/user';
@@ -36,7 +36,17 @@ export const authService = {
             threshold: 5,
         };
 
-        await setDoc(doc(db, 'users', uid), data);
+        try {
+            await setDoc(doc(db, 'users', uid), data);
+        } catch (e: any) {
+            // Avoid leaving an auth account without its paired Firestore profile.
+            try {
+                await deleteUser(userCredential.user);
+            } catch {
+                // Best effort rollback only; keep original Firestore error below.
+            }
+            throw e;
+        }
 
         const user: User = {
             id: uid,
