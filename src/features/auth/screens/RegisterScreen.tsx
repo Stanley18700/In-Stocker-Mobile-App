@@ -73,8 +73,11 @@ export default function RegisterScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
             <ScrollView
+                style={styles.scrollView}
                 contentContainerStyle={styles.container}
                 keyboardShouldPersistTaps="handled"
+                keyboardDismissMode="on-drag"
+                showsVerticalScrollIndicator={false}
             >
                 {/* Header */}
                 <View style={styles.logo}>
@@ -143,11 +146,14 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.background,
     },
+    scrollView: {
+        flex: 1,
+    },
     container: {
         flexGrow: 1,
-        justifyContent: 'center',
         paddingHorizontal: Spacing.lg,
-        paddingVertical: Spacing.xxl,
+        paddingTop: Spacing.xl,
+        paddingBottom: Spacing.xxxl,
     },
     logo: { alignItems: 'center', marginBottom: Spacing.sm },
     title: {
