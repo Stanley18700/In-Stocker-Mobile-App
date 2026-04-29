@@ -1,5 +1,5 @@
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../../../lib/database/firebaseConfig';
+import { getFirestoreDb } from '../../../lib/database/firebaseConfig';
 
 export interface UserPreferences {
     currency: string;
@@ -13,6 +13,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
 
 export const preferencesService = {
     async getPreferences(userId: string): Promise<UserPreferences> {
+        const db = getFirestoreDb();
         const userRef = doc(db, 'users', userId);
         const snapshot = await getDoc(userRef);
 
@@ -35,6 +36,7 @@ export const preferencesService = {
     },
 
     async savePreferences(userId: string, preferences: UserPreferences): Promise<void> {
+        const db = getFirestoreDb();
         const userRef = doc(db, 'users', userId);
         const snapshot = await getDoc(userRef);
 

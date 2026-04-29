@@ -1,9 +1,11 @@
 import { collection, doc, query, where, orderBy, getDocs, getDoc, setDoc, updateDoc, runTransaction, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../lib/database/firebaseConfig';
+import { getFirestoreDb } from '../../../lib/database/firebaseConfig';
 import { Product, CreateProductInput, UpdateProductInput } from '../../../shared/types/product';
 import * as Crypto from 'expo-crypto';
 
-const productsCollection = collection(db, 'products');
+function productsCollection() {
+    return collection(getFirestoreDb(), 'products');
+}
 
 // ---------------------------------------------------------------------------
 // Helper: map a Firestore document snapshot → Product
@@ -28,7 +30,7 @@ function mapDoc(doc: any): Product {
 export const inventoryService = {
     subscribeAll(userId: string, onData: (products: Product[]) => void, onError?: (error: unknown) => void) {
         const q = query(
-            productsCollection,
+            productsCollection(),
             where('user_id', '==', userId),
             where('is_active', '==', 1),
             orderBy('created_at', 'desc')
@@ -47,7 +49,7 @@ export const inventoryService = {
 
     async getAll(userId: string): Promise<Product[]> {
         const q = query(
-            productsCollection,
+            productsCollection(),
             where('user_id', '==', userId),
             where('is_active', '==', 1),
             orderBy('created_at', 'desc')
@@ -57,7 +59,7 @@ export const inventoryService = {
     },
 
     async getById(id: string): Promise<Product> {
-        const docRef = doc(productsCollection, id);
+        const docRef = doc(productsCollection(), id);
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) throw new Error('Product not found.');
         return mapDoc(docSnap);
@@ -69,7 +71,7 @@ export const inventoryService = {
         const sku = input.sku ?? id.slice(0, 8).toUpperCase();
         const now = new Date().toISOString();
 
-        const docRef = doc(productsCollection, id);
+        const docRef = doc(productsCollection(), id);
         const data = {
             user_id: userId,
             name: input.name,
@@ -100,7 +102,7 @@ export const inventoryService = {
     },
 
     async update(id: string, input: UpdateProductInput): Promise<Product> {
-        const docRef = doc(productsCollection, id);
+        const docRef = doc(productsCollection(), id);
         const updates: Record<string, any> = {};
 
         if (input.name !== undefined) updates.name = input.name;
@@ -117,7 +119,7 @@ export const inventoryService = {
     },
 
     async delete(id: string): Promise<void> {
-        const docRef = doc(productsCollection, id);
+        const docRef = doc(productsCollection(), id);
         await updateDoc(docRef, {
             is_active: 0,
             updated_at: new Date().toISOString()
@@ -126,7 +128,7 @@ export const inventoryService = {
 
     async getLowStock(userId: string, threshold: number): Promise<Product[]> {
         const q = query(
-            productsCollection,
+            productsCollection(),
             where('user_id', '==', userId),
             where('is_active', '==', 1),
             where('quantity', '<=', threshold),
@@ -137,7 +139,8 @@ export const inventoryService = {
     },
 
     async adjustStock(id: string, delta: number): Promise<void> {
-        const docRef = doc(productsCollection, id);
+        const db = getFirestoreDb();
+        const docRef = doc(productsCollection(), id);
         await runTransaction(db, async (transaction) => {
             const docSnap = await transaction.get(docRef);
             if (!docSnap.exists()) throw new Error('Product not found.');

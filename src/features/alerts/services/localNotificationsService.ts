@@ -1,12 +1,36 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import { Product } from '../../../shared/types/product';
 
 let configured = false;
 let notificationsModule: typeof import('expo-notifications') | null = null;
 let notificationsUnavailableLogged = false;
+let expoGoWarningLogged = false;
+let envLogged = false;
 
 async function getNotificationsModule(): Promise<typeof import('expo-notifications') | null> {
     if (Platform.OS === 'web') return null;
+
+    // Expo Go (SDK 53+) no longer supports remote push notifications via expo-notifications
+    // and can surface a noisy red error overlay. Since this app only needs notifications
+    // after sign-in, we skip notifications entirely in Expo Go to keep local testing smooth.
+    const executionEnvironment = (Constants as any)?.executionEnvironment as string | undefined;
+    const appOwnership = (Constants as any)?.appOwnership as string | undefined;
+    const isExpoGo = executionEnvironment === 'storeClient' || appOwnership === 'expo';
+
+    if (!envLogged) {
+        envLogged = true;
+        console.warn('[Notifications] executionEnvironment=%s appOwnership=%s', executionEnvironment, appOwnership);
+    }
+
+    if (isExpoGo) {
+        if (!expoGoWarningLogged) {
+            expoGoWarningLogged = true;
+            console.warn('Notifications are disabled in Expo Go. Use a development build to test notifications.');
+        }
+        return null;
+    }
+
     if (notificationsModule) return notificationsModule;
 
     try {

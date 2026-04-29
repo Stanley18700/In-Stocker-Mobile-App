@@ -24,6 +24,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { InventoryStackParamList } from '../../../core/navigation/types';
 import { Product } from '../../../shared/types/product';
 import { formatCurrency } from '../../../shared/utils/formatters';
+import { usePreferencesStore } from '../../settings/store/preferencesStore';
 
 type Props = {
     navigation: StackNavigationProp<InventoryStackParamList, 'InventoryList'>;
@@ -31,6 +32,7 @@ type Props = {
 
 export default function InventoryListScreen({ navigation }: Props) {
     const { products, isLoading, fetchProducts, setSelectedProduct } = useInventory();
+    const currency = usePreferencesStore((s) => s.currency);
     const [query, setQuery] = useState('');
 
     const filtered = query.trim()
@@ -55,7 +57,7 @@ export default function InventoryListScreen({ navigation }: Props) {
                     <Text style={styles.sku}>SKU: {item.sku}</Text>
                 </View>
                 <View style={styles.cardRight}>
-                    <Text style={styles.price}>{formatCurrency(item.price)}</Text>
+                    <Text style={styles.price}>{formatCurrency(item.price, currency)}</Text>
                     <View style={[styles.badge, isLow ? styles.badgeLow : styles.badgeOk]}>
                         <Text style={[styles.badgeText, { color: isLow ? Colors.danger : Colors.secondary }]}>
                             {item.quantity} in stock

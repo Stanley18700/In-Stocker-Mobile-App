@@ -7,6 +7,7 @@ import { formatCurrency, formatDate } from '../../../shared/utils/formatters';
 import { Sale } from '../../../shared/types/sale';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { SalesStackParamList } from '../../../core/navigation/types';
+import { usePreferencesStore } from '../../settings/store/preferencesStore';
 
 type Props = {
     navigation: StackNavigationProp<SalesStackParamList, 'SalesHistory'>;
@@ -46,6 +47,7 @@ function groupByDate(sales: Sale[]): { title: string; data: Sale[] }[] {
 
 export default function SalesHistoryScreen({ navigation }: Props) {
     const { sales, isLoading, fetchSalesHistory } = useSales();
+    const currency = usePreferencesStore((s) => s.currency);
 
     const sections = groupByDate(sales);
 
@@ -53,11 +55,11 @@ export default function SalesHistoryScreen({ navigation }: Props) {
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <Text style={styles.time}>{item.createdAt.slice(11, 16)}</Text>
-                <Text style={styles.total}>{formatCurrency(item.totalAmount)}</Text>
+                <Text style={styles.total}>{formatCurrency(item.totalAmount, currency)}</Text>
             </View>
             {item.items.map((si) => (
                 <Text key={si.id} style={styles.itemLine}>
-                    {si.productName} × {si.quantity} @ {formatCurrency(si.unitPrice)}
+                    {si.productName} × {si.quantity} @ {formatCurrency(si.unitPrice, currency)}
                 </Text>
             ))}
         </View>

@@ -14,7 +14,7 @@
     "production": {
       "autoIncrement": true,
       "env": {
-        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCWz3iWUKKLW6t4pCGfU27vh3MA1pVrkXE",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyBWbAMK6_WHvC6rg8LvPpM82yHoPCKZBLQ",
         "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "in-stocker-d26b7.firebaseapp.com",
         "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "in-stocker-d26b7",
         "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "in-stocker-d26b7.firebasestorage.app",

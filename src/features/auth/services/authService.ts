@@ -1,14 +1,21 @@
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, deleteUser } from 'firebase/auth';
 import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { auth, db } from '../../../lib/database/firebaseConfig';
+import { getFirebaseAuth, getFirestoreDb } from '../../../lib/database/firebaseConfig';
 import { User } from '../../../shared/types/user';
 
 export const authService = {
     async signIn(email: string, password: string) {
+        const auth = getFirebaseAuth();
         const userCredential = await signInWithEmailAndPassword(auth, email.toLowerCase(), password);
+
+        const db = getFirestoreDb();
         const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid));
 
-        if (!userDoc.exists()) throw new Error('User profile not found.');
+        if (!userDoc.exists()) {
+            const err: any = new Error('User profile not found.');
+            err.code = 'profile-not-found';
+            throw err;
+        }
         const data = userDoc.data();
 
         const user: User = {
@@ -23,7 +30,10 @@ export const authService = {
     },
 
     async signUp(email: string, password: string, shopName: string, ownerName: string) {
+        const auth = getFirebaseAuth();
         const userCredential = await createUserWithEmailAndPassword(auth, email.toLowerCase(), password);
+
+        const db = getFirestoreDb();
         const uid = userCredential.user.uid;
         const now = new Date().toISOString();
 
@@ -60,10 +70,12 @@ export const authService = {
     },
 
     async signOut() {
+        const auth = getFirebaseAuth();
         await firebaseSignOut(auth);
     },
 
     async getProfile(userId: string): Promise<User | null> {
+        const db = getFirestoreDb();
         const userDoc = await getDoc(doc(db, 'users', userId));
         if (!userDoc.exists()) return null;
 
@@ -78,6 +90,7 @@ export const authService = {
     },
 
     async getCurrentUserId(): Promise<string | null> {
+        const auth = getFirebaseAuth();
         return new Promise((resolve) => {
             const unsubscribe = onAuthStateChanged(auth, (user) => {
                 unsubscribe();
@@ -91,6 +104,7 @@ export const authService = {
         userId: string,
         updates: { shopName?: string; ownerName?: string }
     ): Promise<void> {
+        const db = getFirestoreDb();
         const docRef = doc(db, 'users', userId);
         const payload: Record<string, string> = {};
         if (updates.shopName !== undefined) payload.shop_name = updates.shopName;

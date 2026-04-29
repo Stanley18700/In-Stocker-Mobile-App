@@ -1,10 +1,15 @@
 import { collection, doc, query, where, getDocs, runTransaction, onSnapshot } from 'firebase/firestore';
-import { db } from '../../../lib/database/firebaseConfig';
+import { getFirestoreDb } from '../../../lib/database/firebaseConfig';
 import { Sale, CartItem, SaleFilters, SaleItem } from '../../../shared/types/sale';
 import * as Crypto from 'expo-crypto';
 
-const salesCollection = collection(db, 'sales');
-const productsCollection = collection(db, 'products');
+function salesCollection() {
+    return collection(getFirestoreDb(), 'sales');
+}
+
+function productsCollection() {
+    return collection(getFirestoreDb(), 'products');
+}
 
 function mapSaleDoc(d: any): Sale {
     const data = d.data();
@@ -30,7 +35,7 @@ function sortByCreatedAtDesc(items: Sale[]): Sale[] {
 
 export const salesService = {
     subscribeHistory(userId: string, onData: (sales: Sale[]) => void, onError?: (error: unknown) => void) {
-        const q = query(salesCollection, where('user_id', '==', userId));
+        const q = query(salesCollection(), where('user_id', '==', userId));
 
         return onSnapshot(
             q,
@@ -60,12 +65,13 @@ export const salesService = {
             subtotal: item.quantity * item.unitPrice
         }));
 
+        const db = getFirestoreDb();
         await runTransaction(db, async (transaction) => {
             // 1. Read all product snapshots and validate stock
             const productSnaps = new Map<string, any>();
 
             for (const item of cart) {
-                const productRef = doc(productsCollection, item.product.id);
+            const productRef = doc(productsCollection(), item.product.id);
                 const productSnap = await transaction.get(productRef);
 
                 if (!productSnap.exists()) {
@@ -82,7 +88,7 @@ export const salesService = {
             }
 
             // 2. Insert sale header
-            const saleRef = doc(salesCollection, saleId);
+            const saleRef = doc(salesCollection(), saleId);
             transaction.set(saleRef, {
                 user_id: userId,
                 total_amount: totalAmount,
@@ -120,7 +126,7 @@ export const salesService = {
     },
 
     async getHistory(userId: string, filters?: SaleFilters): Promise<Sale[]> {
-        const q = query(salesCollection, where('user_id', '==', userId));
+        const q = query(salesCollection(), where('user_id', '==', userId));
         const snapshot = await getDocs(q);
 
         let sales = sortByCreatedAtDesc(snapshot.docs.map(mapSaleDoc));

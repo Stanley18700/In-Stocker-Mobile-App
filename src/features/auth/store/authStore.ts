@@ -53,8 +53,10 @@ export const useAuthStore = create<AuthState>((set) => ({
                 'auth/user-disabled': 'This account has been disabled.',
                 'auth/too-many-requests': 'Too many attempts. Please try again later.',
                 'auth/network-request-failed': 'Network error. Check your connection.',
+                'auth/invalid-api-key': 'App configuration error (invalid Firebase API key). Please contact support.',
                 'auth/configuration-not-found': 'Authentication is not configured. Contact support.',
                 'auth/operation-not-allowed': 'Email/Password sign-in is not enabled.',
+                'profile-not-found': 'Your account exists but your profile is missing. Please sign up again or contact support.',
             };
             return friendly[code] ?? `Login failed (${code || 'unknown'}). Please try again.`;
         }

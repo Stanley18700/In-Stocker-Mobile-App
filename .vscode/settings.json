@@ -1,0 +1,17 @@
+{
+  // These errors come from VS Code's Java tooling attempting to import
+  // Gradle/Java projects that live inside node_modules (e.g. RN gradle plugin).
+  // They are not part of the app's Android build and should be excluded.
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.gradle/**",
+    "**/android/.gradle/**",
+    "**/android/build/**"
+  ],
+  "java.project.resourceFilters": [
+    "node_modules",
+    ".gradle",
+    "android/.gradle",
+    "android/build"
+  ]
+}

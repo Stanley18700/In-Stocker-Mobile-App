@@ -20,6 +20,7 @@ import {
 import { formatCurrency, formatDate } from '../../../shared/utils/formatters';
 import { useDashboard } from '../hooks/useDashboard';
 import { Sale } from '../../../shared/types/sale';
+import { usePreferencesStore } from '../../settings/store/preferencesStore';
 
 // ---------------------------------------------------------------------------
 // Helper: time-based greeting
@@ -99,7 +100,7 @@ function QuickAction({ iconName, label, color, bg, onPress }: QuickActionProps) 
 // RecentSaleRow
 // ---------------------------------------------------------------------------
 
-function RecentSaleRow({ sale }: { sale: Sale }) {
+function RecentSaleRow({ sale, currency }: { sale: Sale; currency: string }) {
     return (
         <View style={styles.saleRow}>
             <View style={styles.saleRowLeft}>
@@ -108,7 +109,7 @@ function RecentSaleRow({ sale }: { sale: Sale }) {
                     {sale.items.map((i) => `${i.productName} ×${i.quantity}`).join(', ')}
                 </Text>
             </View>
-            <Text style={styles.saleAmount}>{formatCurrency(sale.totalAmount)}</Text>
+            <Text style={styles.saleAmount}>{formatCurrency(sale.totalAmount, currency)}</Text>
         </View>
     );
 }
@@ -120,6 +121,7 @@ function RecentSaleRow({ sale }: { sale: Sale }) {
 export default function HomeScreen() {
     const navigation = useNavigation<any>();
     const { user, stats, recentSales, refresh } = useDashboard();
+    const currency = usePreferencesStore((s) => s.currency);
     const [refreshing, setRefreshing] = React.useState(false);
 
     const handleRefresh = async () => {
@@ -142,8 +144,7 @@ export default function HomeScreen() {
             }
         >
             {/* ── Greeting header ────────────────────────────────────────── */}
-            <View style={styles.header}
-            >
+            <View style={styles.header}>
                 <View style={styles.headerText}>
                     <Text style={styles.greeting}>{getGreeting()},</Text>
                     <Text style={styles.ownerName}>{user?.ownerName ?? 'there'}</Text>
@@ -178,7 +179,7 @@ export default function HomeScreen() {
                 <StatCard
                     iconName="cash-outline"
                     label="Revenue Today"
-                    value={formatCurrency(stats.todayRevenue)}
+                    value={formatCurrency(stats.todayRevenue, currency)}
                     accent={Colors.primary}
                     half
                 />
@@ -189,7 +190,7 @@ export default function HomeScreen() {
                 <View>
                     <Text style={styles.inventoryBannerLabel}>Total Inventory Value</Text>
                     <Text style={styles.inventoryBannerValue}>
-                        {formatCurrency(stats.totalInventoryValue)}
+                        {formatCurrency(stats.totalInventoryValue, currency)}
                     </Text>
                 </View>
                 <Ionicons
@@ -267,7 +268,7 @@ export default function HomeScreen() {
                 <View style={[styles.salesCard, Shadow.sm]}>
                     {recentSales.map((sale, i) => (
                         <View key={sale.id}>
-                            <RecentSaleRow sale={sale} />
+                            <RecentSaleRow sale={sale} currency={currency} />
                             {i < recentSales.length - 1 && <View style={styles.divider} />}
                         </View>
                     ))}

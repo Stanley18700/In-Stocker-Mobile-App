@@ -32,12 +32,12 @@ type Props = {
 
 export default function AddProductScreen({ navigation, route }: Props) {
     const { createProduct, isLoading } = useInventory();
-    const { currency } = usePreferencesStore();
+    const { currency, threshold: defaultThreshold } = usePreferencesStore();
     const [name, setName] = useState('');
     const [sku, setSku] = useState('');
     const [quantity, setQuantity] = useState('');
     const [price, setPrice] = useState('');
-    const [threshold, setThreshold] = useState(String(APP_CONFIG.defaultLowStockThreshold));
+    const [threshold, setThreshold] = useState(String(defaultThreshold));
     const [category, setCategory] = useState('');
 
     const [errorModal, setErrorModal] = useState(false);
@@ -80,7 +80,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
                 sku: sku.trim(),
                 quantity: parsedQty,
                 price: parsedPrice,
-                lowStockThreshold: parseInt(threshold, 10) || APP_CONFIG.defaultLowStockThreshold,
+                lowStockThreshold: parseInt(threshold, 10) || defaultThreshold,
                 category: category.trim() || undefined,
             });
             navigation.goBack();
