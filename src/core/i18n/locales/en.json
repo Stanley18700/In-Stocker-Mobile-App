@@ -37,5 +37,38 @@
     "errorAuth": "Please sign in again and retry.",
     "errorNumber": "Please enter a whole number between 1 and 9999.",
     "errorSave": "Could not save preferences to Firebase. Please try again."
+  },
+  "home": {
+    "greetingMorning": "Good morning",
+    "greetingAfternoon": "Good afternoon",
+    "greetingEvening": "Good evening",
+    "greetingNight": "Good night",
+    "there": "there",
+    "yourShop": "Your Shop",
+    "totalProducts": "Total Products",
+    "lowStock": "Low Stock",
+    "salesToday": "Sales Today",
+    "revenueToday": "Revenue Today",
+    "totalInventoryValue": "Total Inventory Value",
+    "quickActions": "Quick Actions",
+    "addProduct": "Add Product",
+    "recordSale": "Record Sale",
+    "restockPlan": "Restock Plan",
+    "alerts": "Alerts",
+    "recentSales": "Recent Sales",
+    "seeAll": "See all →",
+    "noSalesRecord": "No sales recorded yet.",
+    "noSalesSubtext": "Tap \"Record Sale\" to add your first transaction."
+  },
+  "alerts": {
+    "skuAndThreshold": "SKU: {{sku}} - Threshold: {{threshold}} units",
+    "outOfStock": "OUT",
+    "amountLeft": "{{quantity}} left",
+    "title": "Low Stock Alerts",
+    "allSafe": "All products are within safe levels",
+    "needsAttention": "{{count}} product needs attention",
+    "needsAttention_plural": "{{count}} products need attention",
+    "allWellStocked": "All products are well-stocked!",
+    "pullToRefresh": "Pull down to refresh"
   }
 }

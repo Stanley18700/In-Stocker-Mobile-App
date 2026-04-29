@@ -8,8 +8,10 @@ import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { Product } from '../../../shared/types/product';
 import { MainTabParamList } from '../../../core/navigation/types';
 import { useInventory } from '../../inventory/hooks/useInventory';
+import { useTranslation } from 'react-i18next';
 
 export default function AlertsScreen() {
+    const { t } = useTranslation();
     const { lowStockProducts, isLoading, fetchLowStockAlerts } = useAlerts();
     const navigation = useNavigation<BottomTabNavigationProp<MainTabParamList, 'Alerts'>>();
     const { setSelectedProduct } = useInventory();
@@ -33,11 +35,13 @@ export default function AlertsScreen() {
             >
                 <View style={styles.cardLeft}>
                     <Text style={styles.productName}>{item.name}</Text>
-                    <Text style={styles.sku}>SKU: {item.sku}  ·  Threshold: {item.lowStockThreshold} units</Text>
+                    <Text style={styles.sku}>
+                        {t('alerts.skuAndThreshold', { sku: item.sku, threshold: item.lowStockThreshold })}
+                    </Text>
                 </View>
                 <View style={[styles.badge, urgency === 'out' ? styles.badgeOut : urgency === 'critical' ? styles.badgeCritical : styles.badgeLow]}>
                     <Text style={[styles.badgeText, urgency === 'out' ? styles.badgeTextOut : urgency === 'critical' ? styles.badgeTextCritical : styles.badgeTextLow]}>
-                        {item.quantity === 0 ? 'OUT' : `${item.quantity} left`}
+                        {item.quantity === 0 ? t('alerts.outOfStock') : t('alerts.amountLeft', { quantity: item.quantity })}
                     </Text>
                 </View>
             </TouchableOpacity>
@@ -49,12 +53,14 @@ export default function AlertsScreen() {
             <View style={styles.header}>
                 <View style={styles.headerTitleRow}>
                     <Ionicons name="warning-outline" size={18} color={Colors.warning} />
-                    <Text style={styles.headerTitle}>Low Stock Alerts</Text>
+                    <Text style={styles.headerTitle}>{t('alerts.title')}</Text>
                 </View>
                 <Text style={styles.headerSub}>
                     {lowStockProducts.length === 0
-                        ? 'All products are within safe levels'
-                        : `${lowStockProducts.length} product${lowStockProducts.length > 1 ? 's' : ''} need attention`}
+                        ? t('alerts.allSafe')
+                        : lowStockProducts.length === 1 
+                            ? t('alerts.needsAttention', { count: lowStockProducts.length })
+                            : t('alerts.needsAttention_plural', { count: lowStockProducts.length })}
                 </Text>
             </View>
             <FlatList
@@ -71,8 +77,8 @@ export default function AlertsScreen() {
                             color={Colors.secondary}
                             style={styles.emptyIcon}
                         />
-                        <Text style={styles.empty}>All products are well-stocked!</Text>
-                        <Text style={styles.emptySub}>Pull down to refresh</Text>
+                        <Text style={styles.empty}>{t('alerts.allWellStocked')}</Text>
+                        <Text style={styles.emptySub}>{t('alerts.pullToRefresh')}</Text>
                     </View>
                 }
             />

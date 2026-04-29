@@ -8,6 +8,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { Ionicons } from '@expo/vector-icons';
 import {
     Colors,
@@ -26,12 +27,12 @@ import { usePreferencesStore } from '../../settings/store/preferencesStore';
 // Helper: time-based greeting
 // ---------------------------------------------------------------------------
 
-function getGreeting(): string {
+function getGreeting(t: any): string {
     const h = new Date().getHours();
-    if (h < 12) return 'Good morning';
-    if (h < 17) return 'Good afternoon';
-    if (h < 21) return 'Good evening';
-    return 'Good night';
+    if (h < 12) return t('home.greetingMorning');
+    if (h < 17) return t('home.greetingAfternoon');
+    if (h < 21) return t('home.greetingEvening');
+    return t('home.greetingNight');
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +120,7 @@ function RecentSaleRow({ sale, currency }: { sale: Sale; currency: string }) {
 // ---------------------------------------------------------------------------
 
 export default function HomeScreen() {
+    const { t } = useTranslation();
     const navigation = useNavigation<any>();
     const { user, stats, recentSales, refresh } = useDashboard();
     const currency = usePreferencesStore((s) => s.currency);
@@ -146,11 +148,11 @@ export default function HomeScreen() {
             {/* ── Greeting header ────────────────────────────────────────── */}
             <View style={styles.header}>
                 <View style={styles.headerText}>
-                    <Text style={styles.greeting}>{getGreeting()},</Text>
-                    <Text style={styles.ownerName}>{user?.ownerName ?? 'there'}</Text>
+                    <Text style={styles.greeting}>{getGreeting(t)},</Text>
+                    <Text style={styles.ownerName}>{user?.ownerName ?? t('home.there')}</Text>
                 </View>
                 <View style={styles.shopBadge}>
-                    <Text style={styles.shopBadgeText}>{user?.shopName ?? 'Your Shop'}</Text>
+                    <Text style={styles.shopBadgeText}>{user?.shopName ?? t('home.yourShop')}</Text>
                 </View>
             </View>
 
@@ -158,13 +160,13 @@ export default function HomeScreen() {
             <View style={styles.statsGrid}>
                 <StatCard
                     iconName="cube-outline"
-                    label="Total Products"
+                    label={t('home.totalProducts')}
                     value={String(stats.totalProducts)}
                     half
                 />
                 <StatCard
                     iconName="alert-circle-outline"
-                    label="Low Stock"
+                    label={t('home.lowStock')}
                     value={String(stats.lowStockCount)}
                     accent={stats.lowStockCount > 0 ? Colors.danger : Colors.secondary}
                     bg={stats.lowStockCount > 0 ? Colors.dangerLight : Colors.secondaryLight}
@@ -172,13 +174,13 @@ export default function HomeScreen() {
                 />
                 <StatCard
                     iconName="cart-outline"
-                    label="Sales Today"
+                    label={t('home.salesToday')}
                     value={String(stats.todaySalesCount)}
                     half
                 />
                 <StatCard
                     iconName="cash-outline"
-                    label="Revenue Today"
+                    label={t('home.revenueToday')}
                     value={formatCurrency(stats.todayRevenue, currency)}
                     accent={Colors.primary}
                     half
@@ -188,7 +190,7 @@ export default function HomeScreen() {
             {/* ── Inventory value banner ──────────────────────────────────── */}
             <View style={[styles.inventoryBanner, Shadow.sm]}>
                 <View>
-                    <Text style={styles.inventoryBannerLabel}>Total Inventory Value</Text>
+                    <Text style={styles.inventoryBannerLabel}>{t('home.totalInventoryValue')}</Text>
                     <Text style={styles.inventoryBannerValue}>
                         {formatCurrency(stats.totalInventoryValue, currency)}
                     </Text>
@@ -202,11 +204,11 @@ export default function HomeScreen() {
             </View>
 
             {/* ── Quick actions ───────────────────────────────────────────── */}
-            <Text style={styles.sectionTitle}>Quick Actions</Text>
+            <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
             <View style={styles.quickActionsRow}>
                 <QuickAction
                     iconName="add-circle-outline"
-                    label="Add Product"
+                    label={t('home.addProduct')}
                     color={Colors.primary}
                     bg={Colors.primaryLight}
                     onPress={() =>
@@ -217,7 +219,7 @@ export default function HomeScreen() {
                 />
                 <QuickAction
                     iconName="receipt-outline"
-                    label="Record Sale"
+                    label={t('home.recordSale')}
                     color={Colors.secondary}
                     bg={Colors.secondaryLight}
                     onPress={() =>
@@ -228,7 +230,7 @@ export default function HomeScreen() {
                 />
                 <QuickAction
                     iconName="clipboard-outline"
-                    label="Restock Plan"
+                    label={t('home.restockPlan')}
                     color={Colors.primary}
                     bg={Colors.primaryLight}
                     onPress={() =>
@@ -239,7 +241,7 @@ export default function HomeScreen() {
                 />
                 <QuickAction
                     iconName="notifications-outline"
-                    label="Alerts"
+                    label={t('home.alerts')}
                     color={stats.lowStockCount > 0 ? Colors.danger : Colors.textSecondary}
                     bg={stats.lowStockCount > 0 ? Colors.dangerLight : Colors.surfaceAlt}
                     onPress={() => navigation.navigate('Alerts')}
@@ -248,20 +250,20 @@ export default function HomeScreen() {
 
             {/* ── Recent sales ────────────────────────────────────────────── */}
             <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>Recent Sales</Text>
+                <Text style={styles.sectionTitle}>{t('home.recentSales')}</Text>
                 <TouchableOpacity
                     onPress={() => navigation.navigate('Sales', { screen: 'SalesHistory' })}
                 >
-                    <Text style={styles.seeAll}>See all →</Text>
+                    <Text style={styles.seeAll}>{t('home.seeAll')}</Text>
                 </TouchableOpacity>
             </View>
 
             {recentSales.length === 0 ? (
                 <View style={[styles.emptyCard, Shadow.sm]}>
                     <Ionicons name="cart-outline" size={34} color={Colors.textMuted} style={styles.emptyIcon} />
-                    <Text style={styles.emptyText}>No sales recorded yet.</Text>
+                    <Text style={styles.emptyText}>{t('home.noSalesRecord')}</Text>
                     <Text style={styles.emptySubtext}>
-                        Tap "Record Sale" to add your first transaction.
+                        {t('home.noSalesSubtext')}
                     </Text>
                 </View>
             ) : (
