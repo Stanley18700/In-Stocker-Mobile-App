@@ -62,6 +62,13 @@ export default function AlertsScreen() {
                             ? t('alerts.needsAttention', { count: lowStockProducts.length })
                             : t('alerts.needsAttention_plural', { count: lowStockProducts.length })}
                 </Text>
+                <TouchableOpacity 
+                    style={styles.bufferBtn}
+                    onPress={() => navigation.navigate('Inventory', { screen: 'BufferStock' })}
+                >
+                    <Ionicons name="cube-outline" size={18} color={Colors.primary} style={styles.bufferBtnIcon} />
+                    <Text style={styles.bufferBtnText}>{t('inventory.bufferStockTitle')}</Text>
+                </TouchableOpacity>
             </View>
             <FlatList
                 data={lowStockProducts}
@@ -97,6 +104,26 @@ const styles = StyleSheet.create({
     headerTitleRow: { flexDirection: 'row', alignItems: 'center', gap: Spacing.xs },
     headerTitle: { fontSize: FontSize.lg, fontWeight: 'bold', color: Colors.warning },
     headerSub: { fontSize: FontSize.sm, color: Colors.textSecondary, marginTop: 2 },
+    bufferBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: Spacing.md,
+        backgroundColor: Colors.surface,
+        paddingVertical: Spacing.sm,
+        paddingHorizontal: Spacing.md,
+        borderRadius: BorderRadius.md,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    bufferBtnText: {
+        color: Colors.primary,
+        fontSize: FontSize.sm,
+        fontWeight: 'bold',
+    },
+    bufferBtnIcon: {
+        marginRight: Spacing.xs,
+    },
     list: { padding: Spacing.md },
     card: {
         backgroundColor: Colors.surface,
