@@ -13,6 +13,8 @@ import { usePreferencesStore } from '../store/preferencesStore';
 import { Colors, Spacing, FontSize, FontWeight, BorderRadius, Shadow } from '../../../core/theme';
 import AppModal from '../../../shared/components/AppModal';
 import { useAuthStore } from '../../auth/store/authStore';
+import { changeLanguage } from '../../../core/i18n';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'EditPreferences'>;
@@ -20,35 +22,48 @@ type Props = {
 
 // Myanmar Kyat first since that's the app's default currency
 const CURRENCY_OPTIONS = ['K', '฿', '$', '€', '£', '¥'];
+const LANGUAGE_OPTIONS = [
+    { code: 'en', label: 'English' },
+    { code: 'my', label: 'မြန်မာ' },
+];
 
 export default function EditPreferencesScreen({ navigation }: Props) {
-    const { threshold, setThreshold, currency, setCurrency, savePreferences, isSaving } = usePreferencesStore();
+    const { t } = useTranslation();
+    const {
+        threshold, setThreshold,
+        currency, setCurrency,
+        appLanguage, setAppLanguage,
+        savePreferences, isSaving
+    } = usePreferencesStore();
     const userId = useAuthStore((s) => s.user?.id);
 
     const [thresholdText, setThresholdText] = useState(String(threshold));
     const [selectedCurrency, setSelectedCurrency] = useState(currency);
+    const [selectedLanguage, setSelectedLanguage] = useState(appLanguage);
     const [errorModal, setErrorModal] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
 
     const handleSave = async () => {
         if (!userId) {
-            setErrorMsg('Please sign in again and retry.');
+            setErrorMsg(t('editPreferences.errorAuth'));
             setErrorModal(true);
             return;
         }
         const parsed = parseInt(thresholdText, 10);
         if (isNaN(parsed) || parsed < 1 || parsed > 9999) {
-            setErrorMsg('Please enter a whole number between 1 and 9999.');
+            setErrorMsg(t('editPreferences.errorNumber'));
             setErrorModal(true);
             return;
         }
         try {
             setThreshold(parsed);
             setCurrency(selectedCurrency);
+            setAppLanguage(selectedLanguage);
+            await changeLanguage(selectedLanguage);
             await savePreferences(userId);
             navigation.goBack();
         } catch {
-            setErrorMsg('Could not save preferences to Firebase. Please try again.');
+            setErrorMsg(t('editPreferences.errorSave'));
             setErrorModal(true);
         }
     };
@@ -60,9 +75,9 @@ export default function EditPreferencesScreen({ navigation }: Props) {
             keyboardShouldPersistTaps="handled"
         >
             {/* ── Low-Stock Threshold ── */}
-            <Text style={styles.sectionTitle}>Low-Stock Threshold</Text>
+            <Text style={styles.sectionTitle}>{t('editPreferences.thresholdTitle')}</Text>
             <Text style={styles.sectionHint}>
-                This is your planning baseline for new items. Live alerts use each product's own threshold.
+                {t('editPreferences.thresholdHint')}
             </Text>
             <TextInput
                 style={styles.input}
@@ -75,9 +90,9 @@ export default function EditPreferencesScreen({ navigation }: Props) {
             />
 
             {/* ── Currency Symbol ── */}
-            <Text style={[styles.sectionTitle, { marginTop: Spacing.lg }]}>Currency Symbol</Text>
+            <Text style={[styles.sectionTitle, { marginTop: Spacing.lg }]}>{t('editPreferences.currencyTitle')}</Text>
             <Text style={styles.sectionHint}>
-                This symbol will be shown throughout the app.
+                {t('editPreferences.currencyHint')}
             </Text>
             <View style={styles.currenciesRow}>
                 {CURRENCY_OPTIONS.map((c) => (
@@ -101,8 +116,35 @@ export default function EditPreferencesScreen({ navigation }: Props) {
                 ))}
             </View>
 
+            {/* ── Language ── */}
+            <Text style={[styles.sectionTitle, { marginTop: Spacing.lg }]}>{t('editPreferences.languageTitle')}</Text>
+            <Text style={styles.sectionHint}>
+                {t('editPreferences.languageHint')}
+            </Text>
+            <View style={styles.currenciesRow}>
+                {LANGUAGE_OPTIONS.map((lang) => (
+                    <TouchableOpacity
+                        key={lang.code}
+                        style={[
+                            styles.languageChip,
+                            selectedLanguage === lang.code && styles.currencyChipSelected,
+                        ]}
+                        onPress={() => setSelectedLanguage(lang.code)}
+                    >
+                        <Text
+                            style={[
+                                styles.currencyChipText,
+                                selectedLanguage === lang.code && styles.currencyChipTextSelected,
+                            ]}
+                        >
+                            {lang.label}
+                        </Text>
+                    </TouchableOpacity>
+                ))}
+            </View>
+
             <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={isSaving}>
-                <Text style={styles.saveBtnText}>{isSaving ? 'Saving...' : 'Save Preferences'}</Text>
+                <Text style={styles.saveBtnText}>{isSaving ? t('editPreferences.saving') : t('editPreferences.saveBtn')}</Text>
             </TouchableOpacity>
 
             {/* Validation error modal */}
@@ -111,9 +153,9 @@ export default function EditPreferencesScreen({ navigation }: Props) {
                 iconName="alert-circle-outline"
                 iconColor={Colors.warning}
                 iconBg={Colors.warningLight}
-                title="Invalid Value"
+                title={t('common.error')}
                 message={errorMsg}
-                confirmLabel="OK"
+                confirmLabel={t('common.ok')}
                 onConfirm={() => setErrorModal(false)}
             />
         </ScrollView>
@@ -157,6 +199,16 @@ const styles = StyleSheet.create({
     },
     currencyChip: {
         width: 52,
+        height: 52,
+        borderRadius: BorderRadius.md,
+        borderWidth: 1.5,
+        borderColor: Colors.border,
+        backgroundColor: Colors.surface,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    languageChip: {
+        paddingHorizontal: Spacing.lg,
         height: 52,
         borderRadius: BorderRadius.md,
         borderWidth: 1.5,

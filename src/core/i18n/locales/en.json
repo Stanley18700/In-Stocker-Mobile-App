@@ -1,0 +1,41 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "ok": "OK",
+    "yes": "Yes",
+    "no": "No",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "error": "Error",
+    "success": "Success"
+  },
+  "settings": {
+    "title": "Settings",
+    "general": "GENERAL",
+    "myProfile": "My Profile",
+    "lowStockThreshold": "Low Stock Threshold",
+    "currency": "Currency",
+    "language": "Language",
+    "privacyPolicy": "Privacy Policy",
+    "viewOnboardingAgain": "View Onboarding Again",
+    "signOut": "Sign Out",
+    "signOutConfirm": "Are you sure you want to sign out?",
+    "units": "units"
+  },
+  "editPreferences": {
+    "title": "Edit Preferences",
+    "thresholdTitle": "Low-Stock Threshold",
+    "thresholdHint": "This is your planning baseline for new items. Live alerts use each product's own threshold.",
+    "currencyTitle": "Currency Symbol",
+    "currencyHint": "This symbol will be shown throughout the app.",
+    "languageTitle": "Language",
+    "languageHint": "Choose the app display language.",
+    "saveBtn": "Save Preferences",
+    "saving": "Saving...",
+    "errorAuth": "Please sign in again and retry.",
+    "errorNumber": "Please enter a whole number between 1 and 9999.",
+    "errorSave": "Could not save preferences to Firebase. Please try again."
+  }
+}

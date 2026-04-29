@@ -4,11 +4,13 @@ import { getFirestoreDb } from '../../../lib/database/firebaseConfig';
 export interface UserPreferences {
     currency: string;
     threshold: number;
+    appLanguage: string;
 }
 
 const DEFAULT_PREFERENCES: UserPreferences = {
     currency: 'K',
     threshold: 5,
+    appLanguage: 'en',
 };
 
 export const preferencesService = {
@@ -32,6 +34,10 @@ export const preferencesService = {
                 typeof data.threshold === 'number' && Number.isFinite(data.threshold)
                     ? data.threshold
                     : DEFAULT_PREFERENCES.threshold,
+            appLanguage:
+                typeof data.appLanguage === 'string' && data.appLanguage.trim().length > 0
+                    ? data.appLanguage
+                    : DEFAULT_PREFERENCES.appLanguage,
         };
     },
 
@@ -44,6 +50,7 @@ export const preferencesService = {
             await updateDoc(userRef, {
                 currency: preferences.currency,
                 threshold: preferences.threshold,
+                appLanguage: preferences.appLanguage,
             });
             return;
         }

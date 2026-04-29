@@ -9,6 +9,7 @@ import { preferencesService } from '../services/preferencesService';
 export interface Preferences {
     currency: string;
     threshold: number;
+    appLanguage: string;
 }
 
 interface PreferencesState extends Preferences {
@@ -16,6 +17,7 @@ interface PreferencesState extends Preferences {
     isSaving: boolean;
     setCurrency: (currency: string) => void;
     setThreshold: (threshold: number) => void;
+    setAppLanguage: (appLanguage: string) => void;
     hydrate: (userId: string) => Promise<void>;
     savePreferences: (userId: string) => Promise<void>;
     resetToDefaults: () => void;
@@ -24,6 +26,7 @@ interface PreferencesState extends Preferences {
 export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     currency: preferencesService.defaults().currency,
     threshold: preferencesService.defaults().threshold,
+    appLanguage: preferencesService.defaults().appLanguage,
     hydrated: false,
     isSaving: false,
 
@@ -33,6 +36,10 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
 
     setThreshold: (threshold) => {
         set({ threshold });
+    },
+
+    setAppLanguage: (appLanguage) => {
+        set({ appLanguage });
     },
 
     // Load saved prefs from Firestore after auth user is available
@@ -48,8 +55,8 @@ export const usePreferencesStore = create<PreferencesState>((set, get) => ({
     savePreferences: async (userId: string) => {
         set({ isSaving: true });
         try {
-            const { currency, threshold } = get();
-            await preferencesService.savePreferences(userId, { currency, threshold });
+            const { currency, threshold, appLanguage } = get();
+            await preferencesService.savePreferences(userId, { currency, threshold, appLanguage });
         } catch {
             throw new Error('Failed to save preferences.');
         } finally {

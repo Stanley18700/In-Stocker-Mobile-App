@@ -9,6 +9,7 @@ import { APP_CONFIG } from '../../../constants/config';
 import AppModal from '../../../shared/components/AppModal';
 import { Ionicons } from '@expo/vector-icons';
 import { useOnboardingStore } from '../../onboarding/store/onboardingStore';
+import { useTranslation } from 'react-i18next';
 
 type Props = {
     navigation: StackNavigationProp<SettingsStackParamList, 'SettingsList'>;
@@ -22,38 +23,45 @@ interface SettingsRow {
 }
 
 export default function SettingsScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const { user, logout } = useAuthStore();
-    const { threshold, currency } = usePreferencesStore();
+    const { threshold, currency, appLanguage } = usePreferencesStore();
     const resetOnboardingProgress = useOnboardingStore((s) => s.resetProgress);
     const [showSignOutModal, setShowSignOutModal] = useState(false);
 
     const rows: SettingsRow[] = [
         {
             iconName: 'person-circle-outline',
-            label: 'My Profile',
+            label: t('settings.myProfile'),
             value: user?.shopName,
             onPress: () => navigation.navigate('Profile'),
         },
         {
             iconName: 'notifications-outline',
-            label: 'Low Stock Threshold',
-            value: `${threshold} units`,
+            label: t('settings.lowStockThreshold'),
+            value: `${threshold} ${t('settings.units')}`,
             onPress: () => navigation.navigate('EditPreferences'),
         },
         {
             iconName: 'cash-outline',
-            label: 'Currency',
+            label: t('settings.currency'),
             value: currency,
             onPress: () => navigation.navigate('EditPreferences'),
         },
         {
+            iconName: 'language-outline',
+            label: t('settings.language'),
+            value: appLanguage === 'my' ? 'မြန်မာ' : 'English',
+            onPress: () => navigation.navigate('EditPreferences'),
+        },
+        {
             iconName: 'document-text-outline',
-            label: 'Privacy Policy',
+            label: t('settings.privacyPolicy'),
             onPress: () => navigation.navigate('PrivacyPolicy'),
         },
         {
             iconName: 'refresh-circle-outline',
-            label: 'View Onboarding Again',
+            label: t('settings.viewOnboardingAgain'),
             onPress: () => {
                 void resetOnboardingProgress();
             },
@@ -76,7 +84,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
             {/* Settings rows */}
             <View style={styles.section}>
-                <Text style={styles.sectionTitle}>GENERAL</Text>
+                <Text style={styles.sectionTitle}>{t('settings.general')}</Text>
                 {rows.map((row, i) => (
                     <TouchableOpacity
                         key={row.label}
@@ -98,7 +106,7 @@ export default function SettingsScreen({ navigation }: Props) {
 
             {/* Sign out */}
             <TouchableOpacity style={styles.signOutBtn} onPress={() => setShowSignOutModal(true)}>
-                <Text style={styles.signOutText}>Sign Out</Text>
+                <Text style={styles.signOutText}>{t('settings.signOut')}</Text>
             </TouchableOpacity>
 
             <Text style={styles.version}>{APP_CONFIG.appName} v1.0.0</Text>
@@ -109,12 +117,12 @@ export default function SettingsScreen({ navigation }: Props) {
                 iconName="log-out-outline"
                 iconColor={Colors.danger}
                 iconBg={Colors.dangerLight}
-                title="Sign Out"
-                message="Are you sure you want to sign out?"
-                confirmLabel="Sign Out"
+                title={t('settings.signOut')}
+                message={t('settings.signOutConfirm')}
+                confirmLabel={t('settings.signOut')}
                 confirmVariant="danger"
                 onConfirm={() => { setShowSignOutModal(false); logout(); }}
-                cancelLabel="Cancel"
+                cancelLabel={t('common.cancel')}
                 onCancel={() => setShowSignOutModal(false)}
             />
         </ScrollView>

@@ -19,6 +19,7 @@ import {
 } from '../../features/alerts/services/localNotificationsService';
 import OnboardingScreen from '../../features/onboarding/screens/OnboardingScreen';
 import { useOnboardingStore } from '../../features/onboarding/store/onboardingStore';
+import i18n, { changeLanguage } from '../i18n';
 
 const Stack = createStackNavigator<RootStackParamList>();
 
@@ -48,7 +49,10 @@ export default function AppNavigator() {
             return;
         }
 
-        void usePreferencesStore.getState().hydrate(user.id);
+        void usePreferencesStore.getState().hydrate(user.id).then(() => {
+            const { appLanguage } = usePreferencesStore.getState();
+            void changeLanguage(appLanguage);
+        });
         void initializeLocalNotifications();
 
         const unsubscribeInventory = inventoryService.subscribeAll(
