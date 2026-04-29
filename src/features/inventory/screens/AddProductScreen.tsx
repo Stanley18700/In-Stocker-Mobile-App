@@ -6,6 +6,7 @@ import {
     StyleSheet,
     ScrollView,
 } from 'react-native';
+import { useTranslation } from 'react-i18next';
 import { useInventory } from '../hooks/useInventory';
 import {
     Colors,
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export default function AddProductScreen({ navigation, route }: Props) {
+    const { t } = useTranslation();
     const { createProduct, isLoading } = useInventory();
     const { currency, threshold: defaultThreshold } = usePreferencesStore();
     const [name, setName] = useState('');
@@ -61,17 +63,17 @@ export default function AddProductScreen({ navigation, route }: Props) {
 
     const handleSave = async () => {
         if (!name.trim() || !sku.trim() || !quantity.trim() || !price.trim()) {
-            showError('Name, SKU, quantity, and price are required.');
+            showError(t('inventory.errReq'));
             return;
         }
         const parsedQty = parseInt(quantity, 10);
         const parsedPrice = parseFloat(price);
         if (isNaN(parsedQty) || parsedQty < 0) {
-            showError('Please enter a valid quantity (0 or more).');
+            showError(t('inventory.errQty'));
             return;
         }
         if (isNaN(parsedPrice) || parsedPrice <= 0) {
-            showError('Please enter a valid price (must be greater than 0).');
+            showError(t('inventory.errPrice'));
             return;
         }
         try {
@@ -96,28 +98,28 @@ export default function AddProductScreen({ navigation, route }: Props) {
             keyboardShouldPersistTaps="handled"
         >
             <View style={styles.header}>
-                <Text style={styles.title}>Add Product</Text>
+                <Text style={styles.title}>{t('inventory.addTitle')}</Text>
                 <Text style={styles.subtitle}>
-                    Fill in product details to add an item to inventory.
+                    {t('inventory.addSubtitle')}
                 </Text>
             </View>
 
             <View style={styles.formCard}>
                 <InputField
-                    label="Product Name *"
+                    label={t('inventory.productName')}
                     value={name}
                     onChangeText={setName}
-                    placeholder="e.g. Rice 5kg"
+                    placeholder={t('inventory.productNameHint')}
                     onBlur={handleAutoSKU}
                 />
 
-                <Text style={styles.label}>SKU *</Text>
+                <Text style={styles.label}>{t('inventory.sku')}</Text>
                 <View style={styles.skuRow}>
                     <View style={styles.skuInput}>
                         <InputField
                             value={sku}
                             onChangeText={setSku}
-                            placeholder="Auto-generated or scan barcode"
+                            placeholder={t('inventory.skuHint')}
                         />
                     </View>
                     <TouchableOpacity
@@ -126,19 +128,19 @@ export default function AddProductScreen({ navigation, route }: Props) {
                             navigation.navigate('BarcodeScanner', { returnTo: 'AddProduct' })
                         }
                     >
-                        <Text style={styles.scanBtnText}>Scan</Text>
+                        <Text style={styles.scanBtnText}>{t('inventory.scan')}</Text>
                     </TouchableOpacity>
                 </View>
 
                 <InputField
-                    label="Category"
+                    label={t('inventory.category')}
                     value={category}
                     onChangeText={setCategory}
-                    placeholder="e.g. Food, Beverage"
+                    placeholder={t('inventory.categoryHint')}
                 />
 
                 <InputField
-                    label="Quantity *"
+                    label={t('inventory.quantity')}
                     value={quantity}
                     onChangeText={setQuantity}
                     keyboardType="numeric"
@@ -146,7 +148,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
                 />
 
                 <InputField
-                    label={`Price (${currency || APP_CONFIG.currencySymbol}) *`}
+                    label={t('inventory.price', { currency: currency || APP_CONFIG.currencySymbol })}
                     value={price}
                     onChangeText={setPrice}
                     keyboardType="decimal-pad"
@@ -154,7 +156,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
                 />
 
                 <InputField
-                    label="Low Stock Alert Threshold"
+                    label={t('inventory.threshold')}
                     value={threshold}
                     onChangeText={setThreshold}
                     keyboardType="numeric"
@@ -162,7 +164,7 @@ export default function AddProductScreen({ navigation, route }: Props) {
                 />
 
                 <PrimaryButton
-                    title="Save Product"
+                    title={t('inventory.saveProduct')}
                     onPress={handleSave}
                     loading={isLoading}
                     style={styles.button}
@@ -175,9 +177,9 @@ export default function AddProductScreen({ navigation, route }: Props) {
                 iconName="alert-circle-outline"
                 iconColor={Colors.warning}
                 iconBg={Colors.warningLight}
-                title="Cannot Save"
+                title={t('common.error')}
                 message={errorMsg}
-                confirmLabel="OK"
+                confirmLabel={t('common.ok')}
                 onConfirm={() => setErrorModal(false)}
             />
         </ScrollView>

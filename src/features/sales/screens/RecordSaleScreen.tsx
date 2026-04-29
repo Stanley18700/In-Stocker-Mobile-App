@@ -8,6 +8,7 @@ import {
     TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useInventory } from '../../inventory/hooks/useInventory';
 import { useSales } from '../hooks/useSales';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
@@ -25,6 +26,7 @@ type Props = {
 type ModalState = 'none' | 'confirm' | 'success' | 'error';
 
 export default function RecordSaleScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const { products } = useInventory();
     const { cart, cartTotal, cartItemCount, addProductToCart, updateCartItemQty, removeFromCart, checkout } = useSales();
     const { currency } = usePreferencesStore();
@@ -102,7 +104,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search products..."
+                    placeholder={t('sales.searchProducts')}
                     placeholderTextColor={Colors.textMuted}
                     value={query}
                     onChangeText={setQuery}
@@ -123,7 +125,7 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 contentContainerStyle={styles.list}
                 ListHeaderComponent={
                     <TouchableOpacity onPress={() => navigation.navigate('SalesHistory')} style={styles.historyLink}>
-                        <Text style={styles.historyLinkText}>View Sales History →</Text>
+                        <Text style={styles.historyLinkText}>{t('sales.viewHistory')}</Text>
                     </TouchableOpacity>
                 }
             />
@@ -131,14 +133,14 @@ export default function RecordSaleScreen({ navigation }: Props) {
             {/* ── Cart bar ────────────────────────────────────────────────── */}
             {cartItemCount > 0 && (
                 <View style={styles.cartBar}>
-                    <Text style={styles.cartInfo}>{cartItemCount} items · {formatCurrency(cartTotal, currency)}</Text>
+                    <Text style={styles.cartInfo}>{cartItemCount} {t('sales.items')} · {formatCurrency(cartTotal, currency)}</Text>
                     <TouchableOpacity
                         style={[styles.checkoutBtn, isCheckingOut && styles.checkoutBtnLoading]}
                         onPress={handleCheckout}
                         disabled={isCheckingOut}
                     >
                         <Text style={styles.checkoutText}>
-                            {isCheckingOut ? 'Processing…' : 'Checkout →'}
+                            {isCheckingOut ? t('sales.processing') : t('sales.checkout')}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -148,11 +150,11 @@ export default function RecordSaleScreen({ navigation }: Props) {
             <AppModal
                 visible={modal === 'confirm'}
                 iconName="cart-outline"
-                title="Confirm Sale"
-                message={`${cartItemCount} item(s)  ·  ${formatCurrency(cartTotal, currency)}\n\nThis will deduct stock for all items.`}
-                confirmLabel="Confirm Sale"
+                title={t('sales.confirmSale')}
+                message={t('sales.confirmMsg', { count: cartItemCount, total: formatCurrency(cartTotal, currency) })}
+                confirmLabel={t('sales.confirmSale')}
                 onConfirm={handleConfirm}
-                cancelLabel="Cancel"
+                cancelLabel={t('common.cancel')}
                 onCancel={() => setModal('none')}
             />
 
@@ -162,9 +164,9 @@ export default function RecordSaleScreen({ navigation }: Props) {
                 iconName="checkmark-circle-outline"
                 iconColor={Colors.secondary}
                 iconBg={Colors.secondaryLight}
-                title="Sale Recorded!"
-                message="Stock has been updated and the sale has been saved."
-                confirmLabel="Done"
+                title={t('sales.saleRecorded')}
+                message={t('sales.saleSuccessMsg')}
+                confirmLabel={t('common.ok')}
                 onConfirm={() => setModal('none')}
             />
 
@@ -172,9 +174,9 @@ export default function RecordSaleScreen({ navigation }: Props) {
             <AppModal
                 visible={modal === 'error'}
                 iconName="close-circle-outline"
-                title="Checkout Failed"
+                title={t('sales.checkoutFailed')}
                 message={errorMsg}
-                confirmLabel="OK"
+                confirmLabel={t('common.ok')}
                 confirmVariant="danger"
                 onConfirm={() => setModal('none')}
             />

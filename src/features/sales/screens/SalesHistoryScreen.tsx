@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, SectionList, StyleSheet, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useSales } from '../hooks/useSales';
 import { Colors, Spacing, FontSize, BorderRadius } from '../../../core/theme';
 import { formatCurrency, formatDate } from '../../../shared/utils/formatters';
@@ -46,6 +47,7 @@ function groupByDate(sales: Sale[]): { title: string; data: Sale[] }[] {
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function SalesHistoryScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const { sales, isLoading, fetchSalesHistory } = useSales();
     const currency = usePreferencesStore((s) => s.currency);
 
@@ -78,7 +80,7 @@ export default function SalesHistoryScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Reports')}
             >
                 <Ionicons name="analytics-outline" size={18} color={Colors.primary} style={styles.reportsBtnIcon} />
-                <Text style={styles.reportsBtnText}>View Reports</Text>
+                <Text style={styles.reportsBtnText}>{t('sales.viewReports')}</Text>
             </TouchableOpacity>
             {isLoading && sales.length === 0 ? (
                 <ActivityIndicator style={{ marginTop: 40 }} color={Colors.primary} />
@@ -91,7 +93,7 @@ export default function SalesHistoryScreen({ navigation }: Props) {
                     contentContainerStyle={styles.list}
                     stickySectionHeadersEnabled
                     refreshControl={<RefreshControl refreshing={isLoading} onRefresh={() => fetchSalesHistory()} />}
-                    ListEmptyComponent={<Text style={styles.empty}>No sales recorded yet.</Text>}
+                    ListEmptyComponent={<Text style={styles.empty}>{t('sales.noSalesRecord')}</Text>}
                 />
             )}
         </View>

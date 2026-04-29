@@ -11,6 +11,7 @@ import {
     TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 import { useInventory } from '../hooks/useInventory';
 import {
     Colors,
@@ -31,6 +32,7 @@ type Props = {
 };
 
 export default function InventoryListScreen({ navigation }: Props) {
+    const { t } = useTranslation();
     const { products, isLoading, fetchProducts, setSelectedProduct } = useInventory();
     const currency = usePreferencesStore((s) => s.currency);
     const [query, setQuery] = useState('');
@@ -60,7 +62,7 @@ export default function InventoryListScreen({ navigation }: Props) {
                     <Text style={styles.price}>{formatCurrency(item.price, currency)}</Text>
                     <View style={[styles.badge, isLow ? styles.badgeLow : styles.badgeOk]}>
                         <Text style={[styles.badgeText, { color: isLow ? Colors.danger : Colors.secondary }]}>
-                            {item.quantity} in stock
+                            {item.quantity} {t('inventory.inStock')}
                         </Text>
                     </View>
                 </View>
@@ -73,7 +75,7 @@ export default function InventoryListScreen({ navigation }: Props) {
             <View style={styles.searchBar}>
                 <TextInput
                     style={styles.searchInput}
-                    placeholder="Search by name or SKU..."
+                    placeholder={t('inventory.searchPlaceholder')}
                     placeholderTextColor={Colors.textMuted}
                     value={query}
                     onChangeText={setQuery}
@@ -81,7 +83,7 @@ export default function InventoryListScreen({ navigation }: Props) {
                 />
                 {query.length > 0 && (
                     <TouchableOpacity onPress={() => setQuery('')}>
-                        <Text style={styles.clearBtn}>Clear</Text>
+                        <Text style={styles.clearBtn}>{t('inventory.clear')}</Text>
                     </TouchableOpacity>
                 )}
             </View>
@@ -98,7 +100,7 @@ export default function InventoryListScreen({ navigation }: Props) {
                     }
                     ListEmptyComponent={
                         <Text style={styles.empty}>
-                            {query ? 'No products match your search.' : 'No products yet. Add your first one!'}
+                            {query ? t('inventory.noProductsSearch') : t('inventory.noProductsYet')}
                         </Text>
                     }
                 />
@@ -107,7 +109,7 @@ export default function InventoryListScreen({ navigation }: Props) {
                 style={styles.fab}
                 onPress={() => navigation.navigate('AddProduct')}
                 accessibilityRole="button"
-                accessibilityLabel="Add product"
+                accessibilityLabel={t('common.add')}
             >
                 <Ionicons name="add" size={30} color={Colors.white} />
             </TouchableOpacity>

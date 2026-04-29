@@ -1,76 +1,110 @@
-{
-  "common": {
-    "save": "သိမ်းမည်",
-    "cancel": "ပယ်ဖျက်မည်",
-    "ok": "အိုကေ",
-    "yes": "ဟုတ်ကဲ့",
-    "no": "မဟုတ်ပါ",
-    "delete": "ဖျက်မည်",
-    "edit": "ပြင်ဆင်မည်",
-    "add": "ထည့်မည်",
-    "error": "အမှား",
-    "success": "အောင်မြင်သည်"
+const fs = require('fs');
+const path = require('path');
+
+const enPath = path.join(__dirname, '../src/core/i18n/locales/en.json');
+const myPath = path.join(__dirname, '../src/core/i18n/locales/my.json');
+
+const enJson = JSON.parse(fs.readFileSync(enPath, 'utf8'));
+const myJson = JSON.parse(fs.readFileSync(myPath, 'utf8'));
+
+const enUpdate = {
+  "inventory": {
+    "listTitle": "Inventory",
+    "searchPlaceholder": "Search by name or SKU...",
+    "clear": "Clear",
+    "inStock": "in stock",
+    "noProductsSearch": "No products match your search.",
+    "noProductsYet": "No products yet. Add your first one!",
+    "addTitle": "Add Product",
+    "addSubtitle": "Fill in product details to add an item to inventory.",
+    "productName": "Product Name *",
+    "productNameHint": "e.g. Rice 5kg",
+    "sku": "SKU *",
+    "skuHint": "Auto-generated or scan barcode",
+    "scan": "Scan",
+    "category": "Category",
+    "categoryHint": "e.g. Food, Beverage",
+    "quantity": "Quantity *",
+    "price": "Price ({{currency}}) *",
+    "threshold": "Low Stock Alert Threshold",
+    "saveProduct": "Save Product",
+    "editTitle": "Edit Product",
+    "editSubtitle": "Update the details below.",
+    "saveChanges": "Save Changes",
+    "detailsTitle": "Product Details",
+    "detailsSubtitle": "Manage your product.",
+    "quantityLabel": "Quantity:",
+    "priceLabel": "Price:",
+    "categoryLabel": "Category:",
+    "thresholdLabel": "Threshold:",
+    "skuLabel": "SKU:",
+    "deleteProduct": "Delete Product",
+    "deleteConfirm": "Are you sure you want to delete this product?",
+    "bufferStockTitle": "Receive Stock",
+    "bufferStockSubtitle": "Increase your product's stock quantity.",
+    "scanBarcode": "Scan Barcode",
+    "orSelectProduct": "or select a product below",
+    "qtyToAdd": "Quantity to Add",
+    "addStock": "Add Stock",
+    "stockIncreased": "Stock increased successfully.",
+    "errReq": "Name, SKU, quantity, and price are required.",
+    "errQty": "Please enter a valid quantity (0 or more).",
+    "errPrice": "Please enter a valid price (must be greater than 0)."
   },
-  "settings": {
-    "title": "ဆက်တင်များ",
-    "general": "အထွေထွေ",
-    "myProfile": "ကိုယ်ရေးအကျဉ်း",
-    "lowStockThreshold": "လက်ကျန်နည်း သတိပေးချက် သတ်မှတ်ချက်",
-    "currency": "ငွေကြေး",
-    "language": "ဘာသာစကား",
-    "privacyPolicy": "လုံခြုံရေးမူဝါဒ",
-    "viewOnboardingAgain": "အသုံးပြုပုံ လမ်းညွှန်ကို ပြန်ကြည့်မည်",
-    "signOut": "အကောင့်မှ ထွက်မည်",
-    "signOutConfirm": "အကောင့်မှ ထွက်ရန် သေချာပါသလား?",
-    "units": "ခု"
+  "sales": {
+    "recordTitle": "Record Sale",
+    "searchProducts": "Search products...",
+    "viewHistory": "View Sales History →",
+    "items": "items",
+    "checkout": "Checkout →",
+    "processing": "Processing…",
+    "confirmSale": "Confirm Sale",
+    "confirmMsg": "{{count}} item(s) · {{total}}\n\nThis will deduct stock for all items.",
+    "saleRecorded": "Sale Recorded!",
+    "saleSuccessMsg": "Stock has been updated and the sale has been saved.",
+    "checkoutFailed": "Checkout Failed",
+    "historyTitle": "Sales History",
+    "viewReports": "View Reports",
+    "noSalesRecord": "No sales recorded yet.",
+    "reportsTitle": "Sales Reports",
+    "reportsSubtitle": "Overview of your shop's performance.",
+    "today": "Today",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "totalRevenue": "Total Revenue",
+    "itemsSold": "Items Sold"
   },
-  "editPreferences": {
-    "title": "ဆက်တင်များ ပြင်ဆင်ရန်",
-    "thresholdTitle": "လက်ကျန်နည်း သတ်မှတ်ချက်",
-    "thresholdHint": "ပစ္စည်းအသစ်များအတွက် အခြေခံသတ်မှတ်ချက်ဖြစ်သည်။ သတိပေးချက်များက ပစ္စည်းတစ်ခုချင်းစီ၏ သတ်မှတ်ချက်ကို အသုံးပြုပါမည်။",
-    "currencyTitle": "ငွေကြေး သင်္ကေတ",
-    "currencyHint": "ဤသင်္ကေတကို အက်ပ်တစ်ခုလုံးတွင် ပြသပါမည်။",
-    "languageTitle": "ဘာသာစကား",
-    "languageHint": "အက်ပ်တွင် အသုံးပြုရန် ဘာသာစကားကို ရွေးပါ။",
-    "saveBtn": "ပြင်ဆင်ချက်များကို သိမ်းမည်",
-    "saving": "သိမ်းနေသည်...",
-    "errorAuth": "ကျေးဇူးပြု၍ အကောင့်ပြန်ဝင်ပြီး ထပ်ကြိုးစားပါ။",
-    "errorNumber": "၁ မှ ၉၉၉၉ အတွင်း ကိန်းပြည့်ကို ရိုက်ထည့်ပါ။",
-    "errorSave": "ပြင်ဆင်ချက်များကို သိမ်းဆည်း၍မရပါ။ ကျေးဇူးပြု၍ ထပ်မံကြိုးစားပါ။"
+  "auth": {
+    "loginTitle": "Welcome Back",
+    "loginSubtitle": "Sign in to manage your inventory.",
+    "email": "Email Address",
+    "password": "Password",
+    "signIn": "Sign In",
+    "signingIn": "Signing in...",
+    "noAccount": "Don't have an account? ",
+    "signUpLink": "Sign up",
+    "registerTitle": "Create Account",
+    "registerSubtitle": "Start managing your shop today.",
+    "shopName": "Shop Name",
+    "ownerName": "Owner Name",
+    "signUp": "Sign Up",
+    "signingUp": "Signing up...",
+    "haveAccount": "Already have an account? ",
+    "signInLink": "Sign in"
   },
-  "home": {
-    "greetingMorning": "မင်္ဂလာနံနက်ခင်းပါ",
-    "greetingAfternoon": "မင်္ဂလာနေ့လည်ခင်းပါ",
-    "greetingEvening": "မင်္ဂလာညနေခင်းပါ",
-    "greetingNight": "မင်္ဂလာညချမ်းပါ",
-    "there": "အဆွေ",
-    "yourShop": "သင့်ဆိုင်",
-    "totalProducts": "ကုန်ပစ္စည်းစုစုပေါင်း",
-    "lowStock": "လက်ကျန်နည်း",
-    "salesToday": "ယနေ့ရောင်းအား",
-    "revenueToday": "ယနေ့ဝင်ငွေ",
-    "totalInventoryValue": "ကနဦးတန်ဖိုးစုစုပေါင်း",
-    "quickActions": "အမြန်လုပ်ဆောင်ချက်များ",
-    "addProduct": "ကုန်ပစ္စည်းထည့်ရန်",
-    "recordSale": "အရောင်းမှတ်တမ်းတင်ရန်",
-    "restockPlan": "ကုန်ပစ္စည်းဖြည့်တင်းရန်",
-    "alerts": "သတိပေးချက်များ",
-    "recentSales": "လတ်တလောရောင်းချမှုများ",
-    "seeAll": "အားလုံးကြည့်ရန် →",
-    "noSalesRecord": "ရောင်းချမှု မှတ်တမ်းမရှိသေးပါ။",
-    "noSalesSubtext": "ပထမဆုံး အရောင်းမှတ်တမ်းတင်ရန် \"အရောင်းမှတ်တမ်းတင်ရန်\" ကိုနှိပ်ပါ။"
-  },
-  "alerts": {
-    "skuAndThreshold": "SKU: {{sku}} - အနည်းဆုံးလက်ကျန်: {{threshold}} ခု",
-    "outOfStock": "ကုန်ပြီ",
-    "amountLeft": "{{quantity}} ခုကျန်",
-    "title": "လက်ကျန်နည်း သတိပေးချက်များ",
-    "allSafe": "ကုန်ပစ္စည်းတိုင်း လုံလောက်စွာရှိသည်",
-    "needsAttention": "ကုန်ပစ္စည်း {{count}} ခု သတိထားရန်လိုသည်",
-    "needsAttention_plural": "ကုန်ပစ္စည်း {{count}} ခု သတိထားရန်လိုသည်",
-    "allWellStocked": "ကုန်ပစ္စည်းတိုင်း လုံလောက်စွာရှိပါသည်!",
-    "pullToRefresh": "အရင်အခြေအနေပြန်ရောက်အောင် အောက်ဆွဲချပါ"
-  },
+  "onboarding": {
+    "step": "Step {{active}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "reviewPolicy": "Review Policy",
+    "agreeGetStarted": "Agree & Get Started",
+    "finishing": "Finishing…",
+    "privacyPolicy": "Privacy Policy",
+    "readAndAgree": "I have read and agree to this Privacy Policy."
+  }
+};
+
+const myUpdate = {
   "inventory": {
     "listTitle": "ကုန်ပစ္စည်းစာရင်း",
     "searchPlaceholder": "အမည် သို့မဟုတ် SKU ဖြင့် ရှာဖွေပါ...",
@@ -165,4 +199,12 @@
     "privacyPolicy": "လုံခြုံရေးမူဝါဒ",
     "readAndAgree": "ဤလုံခြုံရေးမူဝါဒကို ဖတ်ရှုပြီး သဘောတူပါသည်။"
   }
-}
+};
+
+Object.assign(enJson, enUpdate);
+Object.assign(myJson, myUpdate);
+
+fs.writeFileSync(enPath, JSON.stringify(enJson, null, 2));
+fs.writeFileSync(myPath, JSON.stringify(myJson, null, 2));
+
+console.log("Locales updated!");
